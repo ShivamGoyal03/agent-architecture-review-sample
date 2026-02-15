@@ -25,7 +25,7 @@ while [[ $# -gt 0 ]]; do
         --resource-group|-g) RESOURCE_GROUP="$2"; shift 2 ;;
         --project-name|-p)   PROJECT_NAME="$2";   shift 2 ;;
         --location|-l)       LOCATION="$2";       shift 2 ;;
-        --model|-m)          MODEL_NAME="$2";      shift 2 ;;
+        --model-name|-m)     MODEL_NAME="$2";      shift 2 ;;
         *)
             echo "Unknown option: $1"
             echo "Usage: $0 --resource-group <rg> [--project-name <name>] [--location <region>] [--model <model>]"
@@ -41,7 +41,7 @@ fi
 AI_ACCOUNT_NAME="${PROJECT_NAME}-ai"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$PROJECT_ROOT"
 
 echo ""

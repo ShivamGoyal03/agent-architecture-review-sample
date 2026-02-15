@@ -13,6 +13,9 @@ This folder contains all PowerShell scripts for Windows development and deployme
 | **Deploy hosted agent** | `.\scripts\windows\deploy.ps1 -target agent` |
 | **Deploy web app** | `.\scripts\windows\deploy.ps1 -target webapp -ResourceGroup arch-review-rg -AppName arch-review-web` |
 | **Clean up resources** | `.\scripts\windows\teardown.ps1 -ResourceGroup arch-review-rg` |
+
+---
+
 ## 🔧 Setup Script
 
 ### What It Does

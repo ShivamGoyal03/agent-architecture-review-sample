@@ -73,8 +73,15 @@ if [ ! -f ".env" ]; then
 else
     echo "[OK] .env already exists."
 fi
+
 # ── 5. Create output directory ─────────────────────────────────────────────────────────────
-mkdir -p output
+if [ ! -d "output" ]; then
+    mkdir -p output
+    echo "[OK] Created output/ directory"
+else
+    echo "[OK] output/ directory already exists."
+fi
+
 # ── Done ──────────────────────────────────────────────────────────────────────
 echo ""
 echo "=== Setup Complete ==="

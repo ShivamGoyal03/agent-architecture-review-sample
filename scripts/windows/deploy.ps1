@@ -41,7 +41,7 @@ param(
     [ValidateSet("agent", "webapp")]
     [string]$target = "agent",
 
-    [Parameter(Mandatory=$false)]
+    [Parameter(Mandatory=$true)]
     [string]$ResourceGroup,
 
     [Parameter(Mandatory=$false)]
