@@ -20,7 +20,7 @@
     Model to deploy (default: gpt-4.1).
 
 .EXAMPLE
-    .\deploy\deploy-agent.ps1 -ResourceGroup arch-review-rg -ProjectName arch-review
+    .\scripts\windows\deploy.ps1 -target agent -ResourceGroup arch-review-rg -ProjectName arch-review
 #>
 
 [CmdletBinding()]
@@ -38,7 +38,9 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-$ProjectRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
+# Get script directory, then go up 2 levels: scripts/windows -> scripts -> project root
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ProjectRoot = Split-Path -Parent (Split-Path -Parent $scriptDir)
 Push-Location $ProjectRoot
 
 Write-Host ""

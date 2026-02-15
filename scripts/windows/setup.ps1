@@ -7,13 +7,15 @@
     requirements.txt, and copies .env.template to .env if it doesn't exist.
 
 .EXAMPLE
-    .\setup.ps1
+    .\scripts\windows\setup.ps1
 #>
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-$ProjectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+# Get script directory, then go up 2 levels: scripts/windows -> scripts -> project root
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ProjectRoot = Split-Path -Parent (Split-Path -Parent $scriptDir)
 Push-Location $ProjectRoot
 
 Write-Host ""
@@ -94,6 +96,8 @@ $outputDir = Join-Path $ProjectRoot "output"
 if (-not (Test-Path $outputDir)) {
     New-Item -ItemType Directory -Path $outputDir | Out-Null
     Write-Host "[OK] Created output/ directory" -ForegroundColor Green
+} else {
+    Write-Host "[OK] output/ directory already exists." -ForegroundColor Green
 }
 # ── Done ──────────────────────────────────────────────────────────────────────
 Write-Host ""
@@ -106,7 +110,7 @@ Write-Host "Quick start (CLI):" -ForegroundColor White
 Write-Host "  python run_local.py examples/ecommerce.yaml" -ForegroundColor White
 Write-Host ""
 Write-Host "Quick start (Web UI):" -ForegroundColor White
-Write-Host "  .\start-dev.ps1" -ForegroundColor White
+Write-Host "  .\scripts\windows\dev.ps1" -ForegroundColor White
 Write-Host ""
 
 Pop-Location

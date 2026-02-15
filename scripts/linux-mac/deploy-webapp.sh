@@ -6,8 +6,8 @@
 # configures the web app with environment variables from .env.
 #
 # Usage:
-#   chmod +x deploy/deploy-webapp.sh
-#   ./deploy/deploy-webapp.sh \
+#   chmod +x scripts/linux-mac/deploy.sh
+#   bash scripts/linux-mac/deploy.sh --target webapp \
 #       --resource-group arch-review-rg \
 #       --app-name arch-review-web \
 #       --location eastus2
@@ -46,7 +46,7 @@ fi
 PLAN_NAME="${APP_NAME}-plan"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$PROJECT_ROOT"
 
 echo ""
