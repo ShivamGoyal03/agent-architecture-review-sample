@@ -141,46 +141,76 @@ else
     echo "  Model deployment '$MODEL_NAME' already exists."
 fi
 
-# ── 5. Deploy hosted agent ──────────────────────────────────────────────────
+# ── 5. Deploy hosted agent (Optional) ──────────────────────────────────────
 echo "[5/6] Deploying hosted agent with azd..."
 
 if [ "$AZD_AVAILABLE" = false ]; then
-    echo "  [SKIPPED] azd not available."
+    echo "  [SKIPPED] azd not installed."
     echo "  Azure resources are provisioned. Deploy agent manually via Azure AI Foundry portal."
+elif [ ! -f "agent.yaml" ]; then
+    echo "  [SKIPPED] agent.yaml not found in current directory."
+    echo "  For azd deployment, ensure agent.yaml exists in project root."
+    echo "  Or deploy manually via Azure AI Foundry portal: https://ai.azure.com"
+elif [ ! -f "azure.yaml" ]; then
+    echo "  [SKIPPED] azure.yaml not found. Repository is not configured for azd."
+    echo "  Deploy manually via Azure AI Foundry portal: https://ai.azure.com"
 else
-    # Initialize azd environment if not already done
-    if [ ! -d ".azure" ]; then
-        echo "  [..] Initializing azd environment..."
-        azd init --subscription "$(az account show --query id -o tsv)" \
-            --location "$LOCATION" \
-            --environment "${PROJECT_NAME}-env" &>/dev/null
-    fi
+  echo "  [..] Initializing azd environment..."
+  
+  # Check if azd is already initialized
+  if [ ! -d ".azure" ]; then
+    # Get subscription ID for azd env
+    SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+    ENV_NAME="${PROJECT_NAME}-env"
     
-    # Initialize agent with agent.yaml
-    if [ -f "agent.yaml" ]; then
-        echo "  [..] Initializing azd AI agent configuration..."
-        
-        export AZURE_AI_PROJECT_ENDPOINT="$AI_ENDPOINT"
-        export MODEL_DEPLOYMENT_NAME="$MODEL_NAME"
-        export AZURE_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
-        export AZURE_RESOURCE_GROUP="$RESOURCE_GROUP"
-        
-        if azd ai agent init -m agent.yaml 2>&1; then
-            echo "  [..] Deploying agent..."
-            if azd deploy 2>&1; then
-                echo "  Agent deployed successfully."
-            else
-                echo "  [ERROR] Failed to deploy hosted agent."
-                echo "  Azure resources are provisioned. Deploy agent manually via Azure AI Foundry portal."
-            fi
-        else
-            echo "  [ERROR] Failed to initialize azd agent configuration."
-            echo "  Deploy agent manually via Azure AI Foundry portal."
-        fi
+    # Create new environment
+    echo "  [..] Running: azd env new $ENV_NAME"
+    azd env new "$ENV_NAME" --location "$LOCATION" --subscription "$SUBSCRIPTION_ID"
+    
+    if [ $? -ne 0 ]; then
+      echo "  [ERROR] azd env new failed. Deploy manually via Azure AI Foundry portal."
+      echo "  Portal: https://ai.azure.com"
     else
-        echo "  [SKIPPED] agent.yaml not found in current directory."
-        echo "  Deploy agent manually via Azure AI Foundry portal or place agent.yaml in project root."
+      echo "  [OK] azd environment created successfully"
+      
+      # Set environment variables
+      echo "  [..] Configuring azd environment variables..."
+      azd env set AZURE_RESOURCE_GROUP "$RESOURCE_GROUP"
+      azd env set AZURE_LOCATION "$LOCATION"
+      
+      # Provision infrastructure
+      echo "  [..] Running: azd provision --no-prompt"
+      azd provision --no-prompt
+      
+      if [ $? -ne 0 ]; then
+        echo "  [ERROR] azd provision failed. Check logs and retry."
+      else
+        echo "  [OK] Infrastructure provisioned successfully"
+        
+        # Initialize agent
+        echo "  [..] Running: azd ai agent init -m agent.yaml"
+        azd ai agent init -m agent.yaml
+        
+        if [ $? -ne 0 ]; then
+          echo "  [ERROR] azd ai agent init failed. Check agent.yaml and retry."
+        else
+          echo "  [OK] Agent initialized successfully"
+          
+          # Deploy agent
+          echo "  [..] Running: azd deploy"
+          azd deploy
+          
+          if [ $? -ne 0 ]; then
+            echo "  [ERROR] azd deploy failed. Check logs and retry."
+          else
+            echo "  [OK] Agent deployed successfully to Azure AI Foundry"
+          fi
+      fi
     fi
+  else
+    echo "  [INFO] azd already initialized at .azure/"
+    echo "  To redeploy, run: azd deploy"
+  fi
 fi
 
 # ── 6. RBAC guidance ────────────────────────────────────────────────────────

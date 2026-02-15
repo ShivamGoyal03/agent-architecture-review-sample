@@ -158,50 +158,76 @@ if (-not $existingDeployment) {
     Write-Host "  Model deployment '$ModelName' already exists." -ForegroundColor Green
 }
 
-# ── 5. Deploy hosted agent via azd ──────────────────────────────────────────
+# ── 5. Deploy hosted agent via azd (Optional) ───────────────────────────────
 Write-Host "[5/6] Deploying hosted agent with azd..." -ForegroundColor Yellow
 
 if (-not $azdAvailable) {
-    Write-Host "  [SKIPPED] azd not available." -ForegroundColor Yellow
+    Write-Host "  [SKIPPED] azd not installed." -ForegroundColor Yellow
     Write-Host "  Azure resources are provisioned. Deploy agent manually via Azure AI Foundry portal." -ForegroundColor Yellow
+} elseif (-not (Test-Path "agent.yaml")) {
+    Write-Host "  [SKIPPED] agent.yaml not found in current directory." -ForegroundColor Yellow
+    Write-Host "  For azd deployment, ensure agent.yaml exists in project root." -ForegroundColor Yellow
+    Write-Host "  Or deploy manually via Azure AI Foundry portal: https://ai.azure.com" -ForegroundColor Yellow
+} elseif (-not (Test-Path "azure.yaml")) {
+    Write-Host "  [SKIPPED] azure.yaml not found. Repository is not configured for azd." -ForegroundColor Yellow
+    Write-Host "  Deploy manually via Azure AI Foundry portal: https://ai.azure.com" -ForegroundColor Yellow
 } else {
-    # Initialize azd environment if not already done
-    if (-not (Test-Path ".azure")) {
-        Write-Host "  [..] Initializing azd environment..." -ForegroundColor Yellow
-        azd init --subscription $((az account show --query id -o tsv)) `
-            --location $Location `
-            --environment "${ProjectName}-env" 2>&1 | Out-Null
-    }
+    Write-Host "  [..] Initializing azd environment..." -ForegroundColor Yellow
     
-    # Initialize agent with agent.yaml
-    if (Test-Path "agent.yaml") {
-        Write-Host "  [..] Initializing azd AI agent configuration..." -ForegroundColor Yellow
+    # Check if azd is already initialized
+    if (-not (Test-Path ".azure")) {
+        # Get subscription ID for azd env
+        $subscriptionId = (az account show --query id -o tsv)
+        $envName = "$ProjectName-env"
         
-        # Set environment variables for azd
-        $env:AZURE_AI_PROJECT_ENDPOINT = $aiEndpoint
-        $env:MODEL_DEPLOYMENT_NAME = $ModelName
-        $env:AZURE_SUBSCRIPTION_ID = az account show --query id -o tsv
-        $env:AZURE_RESOURCE_GROUP = $ResourceGroup
+        # Create new environment
+        Write-Host "  [..] Running: azd env new $envName" -ForegroundColor Gray
+        azd env new $envName --location $Location --subscription $subscriptionId
         
-        azd ai agent init -m agent.yaml 2>&1 | Out-String | Write-Host
-        
-        if ($LASTEXITCODE -eq 0) {
-            Write-Host "  [..] Deploying agent..." -ForegroundColor Yellow
-            azd deploy 2>&1 | Out-String | Write-Host
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "  [ERROR] azd env new failed. Deploy manually via Azure AI Foundry portal." -ForegroundColor Red
+            Write-Host "  Portal: https://ai.azure.com" -ForegroundColor Yellow
+        } else {
+            Write-Host "  [OK] azd environment created successfully" -ForegroundColor Green
+            
+            # Set environment variables
+            Write-Host "  [..] Configuring azd environment variables..." -ForegroundColor Yellow
+            azd env set AZURE_RESOURCE_GROUP $ResourceGroup
+            azd env set AZURE_LOCATION $Location
+            
+            # Provision infrastructure
+            Write-Host "  [..] Running: azd provision --no-prompt" -ForegroundColor Gray
+            azd provision --no-prompt
             
             if ($LASTEXITCODE -ne 0) {
-                Write-Host "  [ERROR] Failed to deploy hosted agent." -ForegroundColor Red
-                Write-Host "  Azure resources are provisioned. Deploy agent manually via Azure AI Foundry portal." -ForegroundColor Yellow
+                Write-Host "  [ERROR] azd provision failed. Check logs and retry." -ForegroundColor Red
             } else {
-                Write-Host "  Agent deployed successfully." -ForegroundColor Green
+                Write-Host "  [OK] Infrastructure provisioned successfully" -ForegroundColor Green
+                
+                # Initialize agent
+                Write-Host "  [..] Running: azd ai agent init -m agent.yaml" -ForegroundColor Gray
+                azd ai agent init -m agent.yaml
+                
+                if ($LASTEXITCODE -ne 0) {
+                    Write-Host "  [ERROR] azd ai agent init failed. Check agent.yaml and retry." -ForegroundColor Red
+                } else {
+                    Write-Host "  [OK] Agent initialized successfully" -ForegroundColor Green
+                    
+                    # Deploy agent
+                    Write-Host "  [..] Running: azd deploy" -ForegroundColor Gray
+                    azd deploy
+                    
+                    if ($LASTEXITCODE -ne 0) {
+                        Write-Host "  [ERROR] azd deploy failed. Check logs and retry." -ForegroundColor Red
+                    } else {
+                        Write-Host "  [OK] Agent deployed successfully to Azure AI Foundry" -ForegroundColor Green
+                    }
+                }
             }
-        } else {
-            Write-Host "  [ERROR] Failed to initialize azd agent configuration." -ForegroundColor Red
-            Write-Host "  Deploy agent manually via Azure AI Foundry portal." -ForegroundColor Yellow
         }
     } else {
-        Write-Host "  [SKIPPED] agent.yaml not found in current directory." -ForegroundColor Yellow
-        Write-Host "  Deploy agent manually via Azure AI Foundry portal or place agent.yaml in project root." -ForegroundColor Yellow
+        Write-Host "  [INFO] azd already initialized at .azure/" -ForegroundColor Cyan
+        Write-Host "  To redeploy, run: azd deploy" -ForegroundColor White
     }
 }
 
