@@ -5,7 +5,7 @@
 #
 # Usage:
 #   bash scripts/linux-mac/deploy.sh --target agent [other args]
-#   bash scripts/linux-mac/deploy.sh --target webapp --app-name <name> [other args]
+#   bash scripts/linux-mac/deploy.sh --target webapp --resource-group <rg> --app-name <name> [other args]
 #
 # Default: agent
 

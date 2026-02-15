@@ -11,7 +11,7 @@ This folder contains all Bash scripts for Linux and macOS development and deploy
 | **First-time setup** | `bash scripts/linux-mac/setup.sh` |
 | **Start dev server** | `bash scripts/linux-mac/dev.sh` |
 | **Deploy hosted agent** | `bash scripts/linux-mac/deploy.sh --target agent` |
-| **Deploy web app** | `bash scripts/linux-mac/deploy.sh --target webapp --app-name arch-review-web` |
+| **Deploy web app** | `bash scripts/linux-mac/deploy.sh --target webapp --resource-group arch-review-rg --app-name arch-review-web` |
 | **Clean up resources** | `bash scripts/linux-mac/teardown.sh --resource-group arch-review-rg` |
 
 ---
