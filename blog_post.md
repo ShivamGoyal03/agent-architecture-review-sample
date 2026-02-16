@@ -304,26 +304,26 @@ All three interfaces — CLI, Web App, and Hosted Agent — share the same `tool
 │  smart_parse · analyze_risks · generate_diagram · export_png · ...   │
 └────────────┬────────────────────┬────────────────────┬───────────────┘
              │                    │                    │
-   ┌─────────▼──────────┐  ┌─────▼──────────┐  ┌─────▼──────────┐
-   │  CLI               │  │  Option A       │  │  Option B       │
-   │  run_local.py       │  │  Web App        │  │  Hosted Agent   │
-   │                     │  │                 │  │                 │
-   │  Your machine       │  │  React UI       │  │  main.py        │
-   │  No Azure needed    │  │  + FastAPI      │  │  Agent Framework│
-   │  (structured input) │  │  (api.py)       │  │                 │
-   └─────────────────────┘  │                 │  │  OpenAI         │
-                            │  Custom REST    │  │  Responses API  │
-                            │  /api/review    │  │  /responses     │
-                            │  /api/infer     │  │                 │
-                            │                 │  │  Managed by     │
-                            │  Deploy to:     │  │  Azure AI       │
+   ┌─────────▼───────────┐  ┌─────▼───────────┐  ┌─────▼────────────┐
+   │  CLI                │  │  Option A       │  │  Option B        │
+   │  run_local.py       │  │  Web App        │  │  Hosted Agent    │
+   │                     │  │                 │  │                  │
+   │  Your machine       │  │  React UI       │  │  main.py         │
+   │  No Azure needed    │  │  + FastAPI      │  │  Agent Framework │
+   │  (structured input) │  │  (api.py)       │  │                  │
+   └─────────────────────┘  │                 │  │  OpenAI          │
+                            │  Custom REST    │  │  Responses API   │
+                            │  /api/review    │  │  /responses      │
+                            │  /api/infer     │  │                  │
+                            │                 │  │  Managed by      │
+                            │  Deploy to:     │  │  Microsoft       │
                             │  App Service    │  │  Foundry         │
-                            │  + ACR          │  │                 │
-                            │                 │  │  Auto-scaling   │
+                            │  + ACR          │  │                  │
+                            │                 │  │  Auto-scaling    │
                             │  You manage:    │  │  Managed identity│
-                            │  Scaling, auth, │  │  Conversations  │
-                            │  infra          │  │  Teams / Copilot│
-                            └─────────────────┘  └─────────────────┘
+                            │  Scaling, auth, │  │  Conversations   │
+                            │  infra          │  │  Teams / Copilot │
+                            └─────────────────┘  └──────────────────┘
 ```
 
 ---
