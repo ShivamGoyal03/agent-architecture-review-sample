@@ -440,7 +440,8 @@ The Microsoft Agent Framework makes building production AI agents surprisingly s
 - [Azure Developer CLI (azd)](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/) — infrastructure-as-code deployment
 - [Excalidraw MCP Server](https://github.com/excalidraw/excalidraw-mcp) — interactive diagram rendering
 - [Architecture Review Agent Deployment Guide](deployment.md) — detailed RBAC and deployment walkthrough
+- [Microsoft Foundry](https://ai.azure.com) - Microsoft Foundry is a unified platform designed for building, deploying, and managing AI applications and agents, integrating seamlessly with Azure services and tools. 
 
 ---
 
-*Built with the Microsoft Agent Framework. Deployed on Azure AI Foundry. Diagrams powered by Excalidraw.*
+*Built with the Microsoft Agent Framework. Deployed on Microsoft Foundry. Diagrams powered by Excalidraw.*
