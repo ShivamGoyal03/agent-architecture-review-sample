@@ -29,7 +29,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 Write-Host ""
-Write-Host "=== Architecture Review Agent — Teardown ===" -ForegroundColor Red
+Write-Host "=== Architecture Review Agent - Teardown ===" -ForegroundColor Red
 Write-Host ""
 
 # List what will be deleted

@@ -1,5 +1,5 @@
 """
-Architecture Review Agent — Local Test Runner (no Azure required for structured inputs)
+Architecture Review Agent - Local Test Runner (no Azure required for structured inputs)
 ========================================================================================
 Usage:
     python run_local.py examples/ecommerce.yaml
@@ -30,7 +30,7 @@ from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
 
-# Suppress tools.py logger — run_local.py prints decisions inline via Rich
+# Suppress tools.py logger - run_local.py prints decisions inline via Rich
 logging.getLogger("arch-review").setLevel(logging.CRITICAL)
 
 from tools import (
@@ -94,10 +94,10 @@ async def run_review(content: str, render_mcp: bool = False, force_infer: bool =
         console.print(f"  [cyan]\u2713 Name:[/cyan]    {parsed['metadata']['architecture_name']}")
 
     if not parsed["components"]:
-        console.print("[red]No components found — cannot proceed with review.[/red]")
+        console.print("[red]No components found - cannot proceed with review.[/red]")
         return
 
-    # 2. Risks — use LLM-generated risks when available, else template-based
+    # 2. Risks - use LLM-generated risks when available, else template-based
     console.print(f"\n[dim]Step 2:[/dim] Risk analysis")
     if parsed.get("llm_risks"):
         llm_risks = parsed["llm_risks"]
@@ -203,7 +203,7 @@ async def run_review(content: str, render_mcp: bool = False, force_infer: bool =
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Architecture Review Agent — Local Runner")
+    parser = argparse.ArgumentParser(description="Architecture Review Agent - Local Runner")
     parser.add_argument("file", nargs="?", help="Architecture file (YAML/MD/TXT/README/any)")
     parser.add_argument("--text", "-t", help="Inline architecture description")
     parser.add_argument("--render", "-r", action="store_true",

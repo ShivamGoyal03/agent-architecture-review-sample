@@ -34,7 +34,7 @@ def sample_connections():
 
 @pytest.fixture
 def multi_writer_components():
-    """Components where multiple services write to one DB — for anti-pattern detection."""
+    """Components where multiple services write to one DB - for anti-pattern detection."""
     return [
         {"id": "svc_a", "name": "Service A", "type": "service", "replicas": 2, "technology": ""},
         {"id": "svc_b", "name": "Service B", "type": "service", "replicas": 2, "technology": ""},
@@ -53,7 +53,7 @@ def multi_writer_connections():
 
 @pytest.fixture
 def frontend_to_db_components():
-    """Frontend with direct DB access — security risk."""
+    """Frontend with direct DB access - security risk."""
     return [
         {"id": "frontend", "name": "React App", "type": "frontend", "replicas": 1, "technology": "React"},
         {"id": "user_db", "name": "User DB", "type": "database", "replicas": 1, "technology": "PostgreSQL"},

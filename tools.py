@@ -1,5 +1,5 @@
 """
-Architecture Review Agent — Local Tool Functions
+Architecture Review Agent - Local Tool Functions
 ==================================================
 Pure-Python helpers for architecture parsing, risk detection, Excalidraw
 diagram generation, and component mapping.  These are consumed by the
@@ -145,7 +145,7 @@ def _parse_markdown(content: str) -> dict[str, Any]:
             continue
         text = bullet.group(1).strip()
 
-        # Inside a component definition — parse metadata bullets
+        # Inside a component definition - parse metadata bullets
         if current_comp and "component" in top_section:
             type_m = re.match(r"\*\*Type:\*\*\s*(.+)", text)
             tech_m = re.match(r"\*\*Technology:\*\*\s*(.+)", text)
@@ -165,7 +165,7 @@ def _parse_markdown(content: str) -> dict[str, Any]:
 
         # Inside connections section
         if any(k in top_section for k in ("connection", "flow", "edge", "link")):
-            # Parse "A -> B (protocol)" — strip parenthetical from target
+            # Parse "A -> B (protocol)" - strip parenthetical from target
             parts = re.split(r"\s*(?:->|→|>>)\s*", text)
             if len(parts) >= 2:
                 src = parts[0].strip()
@@ -267,7 +267,7 @@ def parse_architecture(content: str, format_hint: str = "auto") -> dict[str, Any
 # ═══════════════════════════════════════════════════════════════════════════
 
 _LLM_INFERENCE_PROMPT = """\
-You are an expert software architect.  Analyse the following content — it may be
+You are an expert software architect.  Analyse the following content - it may be
 a README, design document, code file, deployment manifest, infrastructure config,
 or any other text that describes or implies a software system architecture.
 
@@ -309,15 +309,15 @@ this schema:
 **Rules:**
 1. Infer component types from context (names, descriptions, technology).
 2. Create connections based on data flow, API calls, event publishing, or any
-   dependency you can infer — even if not explicitly stated as arrows.
+   dependency you can infer - even if not explicitly stated as arrows.
 3. If the text only lists services without explicit connections, infer likely
    connections based on common architectural patterns.
 4. Use snake_case for all IDs.  Names should be human-readable.
-5. Include ALL components you can identify — even infrastructure (load balancers,
+5. Include ALL components you can identify - even infrastructure (load balancers,
    message queues, caches, databases, monitoring).
 6. If the input is too vague to extract any architecture, return an empty
    components array with a note in architecture_name.
-7. Return ONLY valid JSON — no markdown fences, no commentary.
+7. Return ONLY valid JSON - no markdown fences, no commentary.
 8. For risks: identify SPOFs, missing redundancy, shared-DB anti-patterns,
    security gaps, scalability bottlenecks, and missing observability.
    Each issue and recommendation MUST be exactly one concise sentence.
@@ -348,8 +348,8 @@ async def infer_architecture_llm(content: str) -> dict[str, Any]:
     )
 
     if not endpoint:
-        logger.debug("[LLM] AZURE_OPENAI_ENDPOINT not set — skipping LLM")
-        return _llm_error("AZURE_OPENAI_ENDPOINT not set — LLM inference unavailable")
+        logger.debug("[LLM] AZURE_OPENAI_ENDPOINT not set - skipping LLM")
+        return _llm_error("AZURE_OPENAI_ENDPOINT not set - LLM inference unavailable")
     logger.debug("[LLM] Using endpoint=%s, deployment=%s", endpoint, deployment)
     try:
         api_key = os.environ.get("AZURE_OPENAI_API_KEY", "")
@@ -379,7 +379,7 @@ async def infer_architecture_llm(content: str) -> dict[str, Any]:
 
         raw = response.text or "{}"
         data = json.loads(raw)
-        logger.debug("[LLM] Response received — %d components, %d connections inferred",
+        logger.debug("[LLM] Response received - %d components, %d connections inferred",
                      len(data.get("components", [])), len(data.get("connections", [])))
     except Exception as exc:
         logger.debug("[LLM] Call failed: %s", exc)
@@ -462,24 +462,24 @@ async def smart_parse(content: str, format_hint: str = "auto") -> dict[str, Any]
     2. If it extracts too few results, invoke the LLM to analyse the content.
     3. Return whichever result has more meaningful data.
     """
-    logger.debug("[SMART_PARSE] Starting — format_hint=%s", format_hint)
+    logger.debug("[SMART_PARSE] Starting - format_hint=%s", format_hint)
     result = parse_architecture(content, format_hint)
     if result["parsing_sufficient"]:
-        logger.info("[SMART_PARSE] Using RULE-BASED parser (%s) — %d components, %d connections",
+        logger.info("[SMART_PARSE] Using RULE-BASED parser (%s) - %d components, %d connections",
                     result["detected_format"], len(result["components"]), len(result["connections"]))
         return result
 
-    # Rule-based parsing was insufficient — try LLM inference
-    logger.info("[SMART_PARSE] Rule-based insufficient (%d components) — falling back to LLM",
+    # Rule-based parsing was insufficient - try LLM inference
+    logger.info("[SMART_PARSE] Rule-based insufficient (%d components) - falling back to LLM",
                 len(result["components"]))
     llm_result = await infer_architecture_llm(content)
     if llm_result.get("error"):
-        logger.warning("[SMART_PARSE] LLM fallback failed: %s — using rule-based result",
+        logger.warning("[SMART_PARSE] LLM fallback failed: %s - using rule-based result",
                        llm_result["error"])
-        # LLM unavailable — return whatever we got from rule-based
+        # LLM unavailable - return whatever we got from rule-based
         return result
 
-    logger.info("[SMART_PARSE] Using LLM-INFERRED result — %d components, %d connections",
+    logger.info("[SMART_PARSE] Using LLM-INFERRED result - %d components, %d connections",
                 len(llm_result["components"]), len(llm_result["connections"]))
     return llm_result
 
@@ -497,7 +497,7 @@ def _detect_spof(comps: list[dict], conns: list[dict]) -> list[dict]:
         replicas = comp.get("replicas", 1)
         if replicas <= 1 and fan_in.get(comp["id"], 0) >= 2:
             risks.append({"component": comp["name"], "severity": "critical",
-                          "issue": f"Single point of failure — {fan_in[comp['id']]} dependants, 1 replica",
+                          "issue": f"Single point of failure - {fan_in[comp['id']]} dependants, 1 replica",
                           "recommendation": f"Scale {comp['name']} to ≥2 replicas behind a load balancer"})
         elif replicas <= 1 and comp.get("type") in ("gateway", "database", "cache", "queue"):
             risks.append({"component": comp["name"], "severity": "critical",
@@ -512,7 +512,7 @@ def _detect_scalability(comps: list[dict], conns: list[dict]) -> list[dict]:
         fan_in[c["target"]] = fan_in.get(c["target"], 0) + 1
     return [
         {"component": comp["name"], "severity": "medium",
-         "issue": f"Shared {comp['type']} used by {fan_in[comp['id']]} services — contention risk",
+         "issue": f"Shared {comp['type']} used by {fan_in[comp['id']]} services - contention risk",
          "recommendation": f"Consider per-service {comp['type']} or partitioning"}
         for comp in comps
         if comp.get("type") in ("cache", "database", "queue") and fan_in.get(comp["id"], 0) >= 3
@@ -536,7 +536,7 @@ def _detect_security(comps: list[dict], conns: list[dict]) -> list[dict]:
                           "recommendation": "Route DB access through backend services"})
     for ext in (c for c in comps if c.get("type") == "external"):
         risks.append({"component": ext["name"], "severity": "medium",
-                      "issue": f"External dependency '{ext['name']}' — no circuit-breaker",
+                      "issue": f"External dependency '{ext['name']}' - no circuit-breaker",
                       "recommendation": f"Add circuit-breaker / retry for calls to {ext['name']}"})
     return risks
 
@@ -550,7 +550,7 @@ def _detect_anti_patterns(comps: list[dict], conns: list[dict]) -> list[dict]:
     return [
         {"component": next((c["name"] for c in comps if c["id"] == db_id), db_id),
          "severity": "high",
-         "issue": f"Shared DB anti-pattern — {len(w)} services write to same database",
+         "issue": f"Shared DB anti-pattern - {len(w)} services write to same database",
          "recommendation": "Give each service its own data store"}
         for db_id, w in writers.items() if len(w) > 1
     ]
@@ -726,7 +726,7 @@ def _hex_to_rgb(h: str) -> tuple[int, int, int]:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-#  6a.  PNG EXPORT  (Pillow-based — no external renderers needed)
+#  6a.  PNG EXPORT  (Pillow-based - no external renderers needed)
 # ═══════════════════════════════════════════════════════════════════════════
 
 def export_png(
@@ -753,7 +753,7 @@ def export_png(
 
     pos = _layout(components)
     if not pos:
-        # Empty diagram — still produce a valid PNG
+        # Empty diagram - still produce a valid PNG
         img = Image.new("RGB", (400, 200), "#ffffff")
         draw = ImageDraw.Draw(img)
         draw.text((20, 80), "No components to render", fill="#1e1e1e")
@@ -931,7 +931,7 @@ def generate_mcp_diagram_elements(
         col = _COLORS.get(comp.get("type", "service"), _DEFAULT_COL)
         ctype = comp.get("type", "service").upper()
 
-        # Labeled rectangle — single element with embedded text
+        # Labeled rectangle - single element with embedded text
         elems.append({
             "type": "rectangle", "id": cid,
             "x": p[0], "y": p[1], "width": _W, "height": _H,
@@ -984,7 +984,7 @@ async def _render_mcp_async(
     try:
         from mcp import ClientSession  # type: ignore[import-untyped]
     except ImportError:
-        return {"success": False, "error": "mcp package not installed — run: pip install mcp"}
+        return {"success": False, "error": "mcp package not installed - run: pip install mcp"}
 
     def _extract(result: Any) -> str:
         if hasattr(result, "content"):
@@ -995,7 +995,7 @@ async def _render_mcp_async(
         return str(result)
 
     def _make_httpx_client(**kwargs: Any) -> Any:
-        """Custom httpx client factory — disables SSL verification when the
+        """Custom httpx client factory - disables SSL verification when the
         standard CA bundle fails (common behind corporate proxies)."""
         import httpx  # type: ignore[import-untyped]
         # Respect explicit env override first
@@ -1003,15 +1003,15 @@ async def _render_mcp_async(
             kwargs["verify"] = False
             logger.debug("[MCP] SSL verify disabled via ARCH_REVIEW_NO_SSL_VERIFY")
         elif kwargs.get("verify", True) is not False:
-            # Probe the actual target — ssl.create_default_context() alone
+            # Probe the actual target - ssl.create_default_context() alone
             # doesn't catch proxy-injected CAs that httpx will reject.
             try:
                 with httpx.Client(verify=True) as probe:
                     probe.head(mcp_url, timeout=5)
-                logger.debug("[MCP] SSL probe OK — using default verification")
+                logger.debug("[MCP] SSL probe OK - using default verification")
             except Exception as exc:
                 kwargs["verify"] = False
-                logger.warning("[MCP] SSL probe failed (%s) — disabling verification. "
+                logger.warning("[MCP] SSL probe failed (%s) - disabling verification. "
                                "Set ARCH_REVIEW_NO_SSL_VERIFY=1 to suppress this warning.", exc)
         return httpx.AsyncClient(**kwargs)
 

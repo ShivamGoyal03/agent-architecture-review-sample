@@ -1,5 +1,5 @@
 """
-Architecture Review Agent — AI Architecture Reviewer & Diagram Generator.
+Architecture Review Agent - AI Architecture Reviewer & Diagram Generator.
 Uses Microsoft Agent Framework with Microsoft Foundry.
 Ready for deployment to Foundry Hosted Agent service.
 """
@@ -41,7 +41,7 @@ MODEL_DEPLOYMENT_NAME = os.getenv("MODEL_DEPLOYMENT_NAME") or os.getenv(
 # ---------------------------------------------------------------------------
 
 async def review_architecture(
-    content: Annotated[str, "Architecture description — ANY format: YAML, Markdown, plaintext, README, code, design doc, prose, etc."],
+    content: Annotated[str, "Architecture description - ANY format: YAML, Markdown, plaintext, README, code, design doc, prose, etc."],
     render_diagram: Annotated[bool, "Whether to render an interactive diagram via Excalidraw MCP server"] = True,
 ) -> str:
     """Run a complete architecture review in one call.
@@ -91,7 +91,7 @@ async def review_architecture(
 
 
 async def infer_architecture(
-    content: Annotated[str, "Any text — README, design doc, code, prose, config, meeting notes, etc."],
+    content: Annotated[str, "Any text - README, design doc, code, prose, config, meeting notes, etc."],
 ) -> str:
     """Use the LLM to analyse ANY text and extract an architecture.
 
@@ -129,7 +129,7 @@ insights, visual diagrams, and actionable recommendations.
 - Always render the diagram so the user gets a visual.
 - Use Markdown formatting in responses.
 - Be specific: cite component names, types, and concrete remediation steps.
-- Never reject input — always extract the best architecture you can.
+- Never reject input - always extract the best architecture you can.
 """
 
 

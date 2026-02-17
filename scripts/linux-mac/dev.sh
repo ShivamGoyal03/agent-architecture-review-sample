@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Architecture Review Agent — Start both FastAPI backend and React frontend for local development.
+# Architecture Review Agent - Start both FastAPI backend and React frontend for local development.
 # Runs the FastAPI backend on port 8000 and the Vite React dev server on port 5173.
 # The Vite dev server proxies /api requests to the backend.
 #

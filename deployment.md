@@ -1,7 +1,8 @@
-# Architecture Review Agent — Hosted Agent Deployment
+# Architecture Review Agent - Hosted Agent Deployment
 
-Deploy the Architecture Review Agent as a **hosted agent** on Microsoft Foundry using the
-VS Code Foundry extension. No local Docker installation required.
+Deploy the Architecture Review Agent as a **hosted agent** on Microsoft Foundry using the **VS Code Foundry extension** - the recommended deployment path for production use. This approach provides a stable, guided workflow with built-in validation, proper ACR integration, and simplified RBAC management.
+
+> **Why use the extension?** The extension handles containerization, image building via ACR Tasks, deployment creation, and managed identity assignment automatically. It's more reliable than script-based approaches and provides step-by-step feedback during deployment.
 
 ---
 
@@ -9,54 +10,70 @@ VS Code Foundry extension. No local Docker installation required.
 
 | Requirement | Details |
 |---|---|
-| **VS Code Extension** | [Microsoft Foundry for VS Code](https://marketplace.visualstudio.com/items?itemName=TeamsDevApp.vscode-ai-foundry) |
-| **Azure CLI** | v2.80+ — `az version` |
+| **VS Code Extension** | [Microsoft Foundry for VS Code](https://marketplace.visualstudio.com/items?itemName=TeamsDevApp.vscode-ai-foundry) - **Install this first** |
+| **Azure CLI** | v2.80+ - `az version` |
 | **Python** | 3.11+ |
 | **Foundry Project** | With a deployed model (e.g. `gpt-4.1`) |
 | **Azure Login** | `az login` completed |
 
 ---
 
-## 1. Deploy Using the Foundry Extension
+## Deployment Method - Foundry Extension (Recommended)
 
-### Step 1 — Open the project in VS Code
+The VS Code Foundry extension provides the most stable and straightforward deployment experience. Follow these steps to deploy your agent.
 
-```
-code <path-to-agent-architecture-review-sample>
-```
+### Step 1 - Install the Extension and Sign In
 
-### Step 2 — Sign in to Azure
+1. Install the [Microsoft Foundry for VS Code extension](https://marketplace.visualstudio.com/items?itemName=TeamsDevApp.vscode-ai-foundry)
+2. Open this project in VS Code:
+   ```bash
+   code <path-to-agent-architecture-review-sample>
+   ```
+3. Open the **Microsoft Foundry** panel in the sidebar
+4. Sign in with your Azure account - your Foundry workspace should appear in the tree view
 
-Open the **Microsoft Foundry** panel in the sidebar and sign in with your
-Azure account. Your Foundry workspace should appear in the tree view.
+### Step 2 - Deploy the Hosted Agent
 
-### Step 3 — Deploy the hosted agent
+1. Open the **Command Palette** (`Ctrl+Shift+P` or `Cmd+Shift+P` on Mac)
+2. Run: **`Microsoft Foundry: Deploy Hosted Agent`**
+3. **Select your target workspace** - choose the Foundry project where the agent will be deployed
+4. **Select the container agent file** - point to `main.py` in this project
+5. **Configure deployment parameters** - the extension reads `agent.yaml` for:
+   - Agent name and description
+   - Model deployment reference
+   - Environment variables
+   - CPU and memory allocation
+6. **Wait for the deployment** - the extension will:
+   - Package your source code
+   - Upload to **Azure Container Registry (ACR)**
+   - Build the container image remotely using ACR Tasks
+   - Create a **hosted agent version** and **deployment** on Foundry
+   - Assign a system-managed identity to the container
+7. **Verify success** - the agent appears under **Hosted Agents (Preview)** in the Foundry extension tree view
 
-1. Open the **Command Palette** (`Ctrl+Shift+P`).
-2. Run: **`Microsoft Foundry: Deploy Hosted Agent`**.
-3. **Select your target workspace** — pick the Foundry project where the
-   agent will be deployed (e.g. `arch-review`).
-4. **Select the container agent file** — point to `main.py`.
-5. **Configure deployment parameters** — the extension reads `agent.yaml`
-   for the agent definition (name, model, env vars, cpu/memory).
-6. Wait for the build to complete — the extension:
-   - Uploads your source code to **Azure Container Registry** (ACR).
-   - Builds the container image remotely using ACR Tasks.
-   - Creates a **hosted agent version** and **deployment** on Foundry.
-7. On success, the agent appears under **Hosted Agents (Preview)** in
-   the Foundry extension tree view.
+![Extension Deployment Flow](docs/extension-deployment.png)
 
-### Step 4 — Verify in the Foundry portal
+> **What happens behind the scenes:**
+> - The extension creates an ACR build task with your Dockerfile
+> - Container image is built in Azure (no local Docker required)
+> - Managed identity is automatically assigned
+> - Agent is registered in the Foundry Agent Service
+> - Endpoint becomes available at `https://<your-resource>.services.ai.azure.com/api/projects/<your-project>/openai/responses`
 
-- Status should show **Running**.
-- Container logs should show:
-  ```
-  Architecture Review Agent Server running on http://localhost:8088
-  ```
+### Step 3 - Verify in the Foundry Portal
+
+1. Navigate to [Microsoft Foundry](https://ai.azure.com)
+2. Open your project
+3. Go to **Hosted Agents (Preview)**
+4. Find your agent - status should show **Running**
+5. Check container logs - should display:
+   ```
+   Architecture Review Agent Server running on http://localhost:8088
+   ```
 
 ---
 
-## 2. Assign Required RBAC Roles
+## Configure RBAC Permissions
 
 The hosted agent container runs with a **system-assigned managed identity**.
 This identity needs permissions to call the Foundry Agent API (`create_agent`).
@@ -74,7 +91,7 @@ missing.
 $scope = (az cognitiveservices account list `
   --query "[?name=='<your-resource>'].id" -o tsv)
 
-# 2. Azure AI User — grants ALL Foundry data-plane actions
+# 2. Azure AI User - grants ALL Foundry data-plane actions
 #    (includes Microsoft.CognitiveServices/accounts/AIServices/agents/write)
 az role assignment create `
   --assignee "<PRINCIPAL_ID>" `
@@ -112,9 +129,9 @@ az role assignment list `
 
 ---
 
-## 3. Test the Deployed Agent
+## Test the Deployed Agent
 
-### Option A — Foundry Playground (in VS Code)
+### Option A - Foundry Playground (in VS Code)
 
 1. In the Foundry extension tree view, expand **Hosted Agents (Preview)**.
 2. Click on **Architecture Review Agent**.
@@ -130,7 +147,7 @@ az role assignment list `
 5. The agent should return a full review with risks, components, and
    diagram info.
 
-### Option B — REST API (curl / Invoke-RestMethod)
+### Option B - REST API (curl / Invoke-RestMethod)
 
 The deployed agent exposes the **OpenAI Responses API**:
 
@@ -154,7 +171,7 @@ Invoke-RestMethod `
   } | ConvertTo-Json -Depth 5)
 ```
 
-### Option C — Local testing (before deployment)
+### Option C - Local testing (before deployment)
 
 Run the agent locally without Docker:
 

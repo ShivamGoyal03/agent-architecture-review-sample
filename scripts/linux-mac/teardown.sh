@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Architecture Review Agent — Tear down all Azure resources.
+# Architecture Review Agent - Tear down all Azure resources.
 #
 # Deletes the entire resource group, removing all resources created by
 # the deployment scripts.
@@ -29,7 +29,7 @@ if [[ -z "$RESOURCE_GROUP" ]]; then
 fi
 
 echo ""
-echo "=== Architecture Review Agent — Teardown ==="
+echo "=== Architecture Review Agent - Teardown ==="
 echo ""
 
 echo "Resources in '$RESOURCE_GROUP':"

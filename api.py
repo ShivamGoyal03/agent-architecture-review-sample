@@ -1,5 +1,5 @@
 """
-Architecture Review Agent — FastAPI Backend
+Architecture Review Agent - FastAPI Backend
 =============================================
 Exposes the smart_parse → analyze_risks → generate_excalidraw_elements →
 export_png → build_review_report pipeline as REST endpoints.
@@ -87,7 +87,7 @@ class InferRequest(BaseModel):
 # ---------------------------------------------------------------------------
 
 def _validate_run_id(run_id: str) -> str:
-    """Sanitise run_id to prevent path traversal — must be a short hex string."""
+    """Sanitise run_id to prevent path traversal - must be a short hex string."""
     if not re.fullmatch(r"[0-9a-fA-F]{1,16}", run_id):
         raise HTTPException(status_code=400, detail="Invalid run_id format")
     return run_id
@@ -185,7 +185,7 @@ async def review_architecture(req: ReviewRequest):
         raise
     except Exception as exc:
         logger.exception("Review pipeline failed")
-        raise HTTPException(status_code=500, detail="Internal server error — check server logs for details")
+        raise HTTPException(status_code=500, detail="Internal server error - check server logs for details")
 
 
 @app.post("/api/review/upload")
@@ -219,12 +219,12 @@ async def review_upload(file: UploadFile = File(...), force_infer: bool = False)
         raise
     except Exception as exc:
         logger.exception("Upload pipeline failed")
-        raise HTTPException(status_code=500, detail="Internal server error — check server logs for details")
+        raise HTTPException(status_code=500, detail="Internal server error - check server logs for details")
 
 
 @app.post("/api/infer")
 async def infer_architecture(req: InferRequest):
-    """LLM inference only — extract architecture from unstructured text."""
+    """LLM inference only - extract architecture from unstructured text."""
     if not req.content.strip():
         raise HTTPException(status_code=400, detail="Content is required")
     if len(req.content) > MAX_INPUT_SIZE:
@@ -235,7 +235,7 @@ async def infer_architecture(req: InferRequest):
         return JSONResponse(content=result)
     except Exception as exc:
         logger.exception("Inference failed")
-        raise HTTPException(status_code=500, detail="Internal server error — check server logs for details")
+        raise HTTPException(status_code=500, detail="Internal server error - check server logs for details")
 
 
 @app.get("/api/download/png/{run_id}")

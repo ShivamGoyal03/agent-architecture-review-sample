@@ -1,4 +1,4 @@
-# Linux/macOS Scripts — Command Reference
+# Linux/macOS Scripts - Command Reference
 
 This folder contains all Bash scripts for Linux and macOS development and deployment.
 
@@ -10,8 +10,7 @@ This folder contains all Bash scripts for Linux and macOS development and deploy
 |------|---------|
 | **First-time setup** | `bash scripts/linux-mac/setup.sh` |
 | **Start dev server** | `bash scripts/linux-mac/dev.sh` |
-| **Deploy hosted agent** | `bash scripts/linux-mac/deploy.sh --target agent` |
-| **Deploy web app** | `bash scripts/linux-mac/deploy.sh --target webapp --resource-group arch-review-rg --app-name arch-review-web` |
+| **Deploy web app** | `bash scripts/linux-mac/deploy-webapp.sh --resource-group arch-review-rg --app-name arch-review-web` |
 | **Clean up resources** | `bash scripts/linux-mac/teardown.sh --resource-group arch-review-rg` |
 
 ---
@@ -46,7 +45,7 @@ Next: Run bash scripts/linux-mac/dev.sh
 ```
 
 ### If Already Set Up
-Safe to run multiple times—will update dependencies if needed.
+Safe to run multiple times-will update dependencies if needed.
 
 ---
 
@@ -98,93 +97,7 @@ tail -f dev.log
 
 ---
 
-## 🌩️ Deploy Script — Hosted Agent
-
-### What It Does
-- Validates Azure login
-- Builds Docker container
-- Uploads to Azure Container Registry (ACR)
-- Deploys as Hosted Agent to Microsoft Foundry
-- Configures managed identity and RBAC
-
-### Prerequisites
-- `az login` completed
-- Azure subscription selected
-- Access to target resource group
-
-### Deploy to Hosted Agent (Default)
-```bash
-bash scripts/linux-mac/deploy.sh --target agent --resource-group arch-review-rg
-```
-
-### Deploy with Custom Options
-```bash
-# Specify project name
-bash scripts/linux-mac/deploy.sh \
-    --target agent \
-    --resource-group arch-review-rg \
-    --project-name my-arch-review
-
-# Specify location
-bash scripts/linux-mac/deploy.sh \
-    --target agent \
-    --resource-group arch-review-rg \
-    --location westus2
-
-# Specify model
-bash scripts/linux-mac/deploy.sh \
-    --target agent \
-    --resource-group arch-review-rg \
-    --model-name gpt-4.1
-```
-
-### Deploy Parameters
-```bash
-# --target agent
-  Required when deploying hosted agent
-  
-# --resource-group STRING
-  Azure resource group name
-  Example: "arch-review-rg"
-  
-# --project-name STRING
-  AI Foundry project name (default: "arch-review")
-  Example: "my-project"
-  
-# --location STRING
-  Azure region (default: "eastus2")
-  Example: "westus2", "eastus", "northeurope"
-  
-# --model-name STRING
-  Model to deploy (default: "gpt-4.1")
-  Example: "gpt-4.1"
-```
-
-### Example Output
-```
-🚀 Deploying Hosted Agent...
-✅ Logged in to Azure
-✅ Building Docker image...
-✅ Pushing to ACR...
-✅ Creating AI Services account...
-✅ Creating AI Foundry project...
-✅ Deploying model...
-✅ Deploying agent...
-✅ Configuring RBAC...
-
-✅ Deployment successful!
-
-Agent endpoint: https://arch-review-agent.azurewebsites.net/
-```
-
-### After Deployment
-- Agent available in Microsoft Foundry portal
-- Can publish to Teams, M365 Copilot, or stable endpoint
-- Use `/responses` endpoint for API calls
-
----
-
-## 🌐 Deploy Script — Web App
+##  Deploy Script - Web App
 
 ### What It Does
 - Validates prerequisites
@@ -195,20 +108,18 @@ Agent endpoint: https://arch-review-agent.azurewebsites.net/
 
 ### Deploy Web App
 ```bash
-bash scripts/linux-mac/deploy.sh --target webapp --resource-group arch-review-rg --app-name arch-review-web
+bash scripts/linux-mac/deploy-webapp.sh --resource-group arch-review-rg --app-name arch-review-web
 ```
 
 ### Deploy Web App with Custom Options
 ```bash
 # Specify app name
-bash scripts/linux-mac/deploy.sh \
-    --target webapp \
+bash scripts/linux-mac/deploy-webapp.sh \
     --resource-group arch-review-rg \
     --app-name my-reviewer
 
 # Specify location
-bash scripts/linux-mac/deploy.sh \
-    --target webapp \
+bash scripts/linux-mac/deploy-webapp.sh \
     --resource-group arch-review-rg \
     --app-name arch-review-web \
     --location westus2
@@ -239,7 +150,7 @@ Web app: https://arch-review-app.azurewebsites.net/
 ## 🗑️ Teardown Script
 
 ### What It Does
-- Removes deployed hosted agent or web app
+- Removes deployed web app resources
 - Deletes container registry
 - Deletes resource groups
 - Cleans up all Azure resources
@@ -278,7 +189,7 @@ Script will prompt before deleting:
 ## 🛠️ Troubleshooting
 
 ### Setup: "venv already exists"
-Safe to re-run—will update dependencies:
+Safe to re-run-will update dependencies:
 ```bash
 bash scripts/linux-mac/setup.sh
 ```
@@ -354,7 +265,7 @@ Make scripts executable:
 ```bash
 chmod +x scripts/linux-mac/setup.sh
 chmod +x scripts/linux-mac/dev.sh
-chmod +x scripts/linux-mac/deploy.sh
+chmod +x scripts/linux-mac/deploy-webapp.sh
 chmod +x scripts/linux-mac/teardown.sh
 
 # Then try again
@@ -388,13 +299,13 @@ az group create \
     --name arch-review-rg \
     --location eastus2
 
-# 3. Deploy hosted agent
-bash scripts/linux-mac/deploy.sh \
-    --target agent \
-    --resource-group arch-review-rg
+# 3. Deploy web app
+bash scripts/linux-mac/deploy-webapp.sh \
+    --resource-group arch-review-rg \
+    --app-name arch-review-web
 
 # 4. Wait for deployment to complete
-# 5. Agent appears in Microsoft Foundry portal
+# 5. Web app available at azurewebsites.net URL
 ```
 
 ### Clean Up
@@ -407,10 +318,10 @@ bash scripts/linux-mac/teardown.sh
 
 ## 🔗 Related Documentation
 
-- [../README.md](../README.md) — Project overview
-- [../../README.md](../../README.md) — Full repository guide
-- [../../deployment.md](../../deployment.md) — Detailed deployment steps
-- [../../run_local.py](../../run_local.py) — CLI testing alternative
+- [../README.md](../README.md) - Project overview
+- [../../README.md](../../README.md) - Full repository guide
+- [../../deployment.md](../../deployment.md) - Detailed deployment steps
+- [../../run_local.py](../../run_local.py) - CLI testing alternative
 
 ---
 
@@ -419,6 +330,6 @@ bash scripts/linux-mac/teardown.sh
 - [ ] Run `bash scripts/linux-mac/setup.sh` (first time only)
 - [ ] Run `bash scripts/linux-mac/dev.sh` to test locally
 - [ ] Open http://localhost:5173 to see UI
-- [ ] Run Azure deployment with `bash scripts/linux-mac/deploy.sh --target agent`
-- [ ] Verify agent in Azure portal
+- [ ] Run Azure deployment with `bash scripts/linux-mac/deploy-webapp.sh --resource-group arch-review-rg --app-name arch-review-web`
+- [ ] Verify web app at azurewebsites.net URL
 - [ ] Use `bash scripts/linux-mac/teardown.sh --resource-group arch-review-rg` when done

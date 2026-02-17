@@ -1,5 +1,5 @@
 """
-Unit tests for api.py — FastAPI endpoints.
+Unit tests for api.py - FastAPI endpoints.
 Uses TestClient (no real server needed).
 """
 

@@ -4,7 +4,7 @@ function Recommendations({ items }) {
   if (!items || items.length === 0) {
     return (
       <div style={{ padding: 24, textAlign: "center", color: "#868e96" }}>
-        No recommendations — architecture looks good!
+        No recommendations - architecture looks good!
       </div>
     );
   }

@@ -1,4 +1,4 @@
-# Architecture Review Agent — Web App (FastAPI + React)
+# Architecture Review Agent - Web App (FastAPI + React)
 # Build: docker build -f Dockerfile.web -t arch-review-web:v1 .
 FROM node:20-slim AS frontend-build
 

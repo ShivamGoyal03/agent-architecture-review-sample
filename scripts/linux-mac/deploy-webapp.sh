@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# Architecture Review Agent — Deploy Web App to Azure App Service (container-based).
+# Architecture Review Agent - Deploy Web App to Azure App Service (container-based).
 #
 # Creates an Azure Resource Group, Container Registry, App Service Plan,
 # and Web App. Builds the Docker image via ACR Tasks, pushes it, and
 # configures the web app with environment variables from .env.
 #
 # Usage:
-#   chmod +x scripts/linux-mac/deploy.sh
-#   bash scripts/linux-mac/deploy.sh --target webapp \
+#   chmod +x scripts/linux-mac/deploy-webapp.sh
+#   bash scripts/linux-mac/deploy-webapp.sh \
 #       --resource-group arch-review-rg \
 #       --app-name arch-review-web \
 #       --location eastus2
@@ -50,7 +50,7 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$PROJECT_ROOT"
 
 echo ""
-echo "=== Architecture Review Agent — Azure Web App Deployment ==="
+echo "=== Architecture Review Agent - Azure Web App Deployment ==="
 echo ""
 echo "  Resource Group : $RESOURCE_GROUP"
 echo "  App Name       : $APP_NAME"
@@ -68,7 +68,7 @@ fi
 echo "  Azure CLI $(az version --query '\"azure-cli\"' -o tsv)"
 
 if ! az account show &>/dev/null; then
-    echo "[..] Not logged in — running az login..."
+    echo "[..] Not logged in - running az login..."
     az login
 fi
 echo "  Subscription: $(az account show --query name -o tsv)"

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Architecture Review Agent — One-click setup script for Linux / macOS.
+# Architecture Review Agent - One-click setup script for Linux / macOS.
 # Creates a .venv virtual environment, installs dependencies,
 # and copies .env.template to .env if it doesn't exist.
 #
@@ -40,41 +40,23 @@ if [ -z "$PYTHON" ]; then
     exit 1
 fi
 
-# ── 2. Check Azure Developer CLI (azd) ──────────────────────────────────────
+# ── 2. Check VS Code and install Microsoft Foundry extension ────────────────
 echo ""
-if ! command -v azd &>/dev/null; then
-    echo "[WARN] Azure Developer CLI (azd) not found."
-    echo "[..] Attempting to install azd..."
+if command -v code &>/dev/null; then
+    echo "[OK] VS Code found"
+    echo "[..] Installing Microsoft Foundry extension..."
     
-    # Install azd
-    if curl -fsSL https://aka.ms/install-azd.sh | bash; then
-        # Source profile to get azd in PATH
-        if [ -f "$HOME/.bashrc" ]; then
-            # shellcheck disable=SC1091
-            source "$HOME/.bashrc" 2>/dev/null || true
-        fi
-        if [ -f "$HOME/.zshrc" ]; then
-            # shellcheck disable=SC1091
-            source "$HOME/.zshrc" 2>/dev/null || true
-        fi
-        
-        if command -v azd &>/dev/null; then
-            echo "[OK] Azure Developer CLI installed successfully: $(azd version)"
-        else
-            echo "[WARN] azd installed but not in PATH. Restart terminal or run: source ~/.bashrc"
-        fi
+    extensionId="TeamsDevApp.vscode-ai-foundry"
+    if code --list-extensions 2>/dev/null | grep -q "$extensionId"; then
+        echo "[OK] Microsoft Foundry extension already installed."
     else
-        echo "[WARN] Failed to install azd. Install manually: curl -fsSL https://aka.ms/install-azd.sh | bash"
+        code --install-extension "$extensionId" --force &>/dev/null
+        echo "[OK] Microsoft Foundry extension installed successfully."
+        echo "     Reload VS Code to activate the extension."
     fi
 else
-    echo "[OK] Found $(azd version)"
-    
-    # Check if azd supports AI agent commands
-    if azd ai --help 2>&1 | grep -q "agent"; then
-        echo "[OK] azd AI agent support detected."
-    else
-        echo "[WARN] azd AI agent commands not available. Update azd to the latest version."
-    fi
+    echo "[WARN] VS Code not found on PATH. Install manually from: https://code.visualstudio.com/"
+    echo "       Microsoft Foundry extension: https://marketplace.visualstudio.com/items?itemName=TeamsDevApp.vscode-ai-foundry"
 fi
 
 # ── 3. Create .venv ──────────────────────────────────────────────────────────
@@ -103,7 +85,7 @@ echo "[OK] Dependencies installed."
 if [ ! -f ".env" ]; then
     if [ -f ".env.template" ]; then
         cp .env.template .env
-        echo "[OK] Created .env from .env.template — edit it with your settings."
+        echo "[OK] Created .env from .env.template - edit it with your settings."
     else
         echo "[WARN] No .env.template found. Create a .env file manually."
     fi

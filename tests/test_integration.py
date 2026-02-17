@@ -1,5 +1,5 @@
 """
-Integration tests — end-to-end flows using the real example files
+Integration tests - end-to-end flows using the real example files
 and the full pipeline (parser → risks → diagram → PNG → report).
 """
 
@@ -268,7 +268,7 @@ class TestEdgeCases:
 
 
 class TestSmartParse:
-    """Tests for smart_parse() — async parse with LLM fallback."""
+    """Tests for smart_parse() - async parse with LLM fallback."""
 
     @pytest.mark.asyncio
     async def test_smart_parse_yaml(self):

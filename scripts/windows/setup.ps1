@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Architecture Review Agent — One-click setup script for Windows (PowerShell).
+    Architecture Review Agent - One-click setup script for Windows (PowerShell).
 
 .DESCRIPTION
     Creates a .venv virtual environment, installs dependencies from
@@ -39,7 +39,7 @@ foreach ($candidate in @("python3", "python")) {
             }
         }
     } catch {
-        # candidate not found — try next
+        # candidate not found - try next
     }
 }
 
@@ -50,39 +50,25 @@ if (-not $python) {
     exit 1
 }
 
-# ── 2. Check Azure Developer CLI (azd) ──────────────────────────────────────
+# ── 2. Check VS Code and install Microsoft Foundry extension ────────────────
 Write-Host ""
-$azdVersion = azd version 2>$null
-if (-not $azdVersion) {
-    Write-Host "[WARN] Azure Developer CLI (azd) not found." -ForegroundColor Yellow
-    Write-Host "[..] Attempting to install azd via winget..." -ForegroundColor Yellow
+if (Get-Command code -ErrorAction SilentlyContinue) {
+    Write-Host "[OK] VS Code found" -ForegroundColor Green
+    Write-Host "[..] Installing Microsoft Foundry extension..." -ForegroundColor Yellow
     
-    # Check if winget is available
-    if (Get-Command winget -ErrorAction SilentlyContinue) {
-        try {
-            winget install Microsoft.Azd --accept-package-agreements --accept-source-agreements --silent
-            $azdVersion = azd version 2>$null
-            if ($azdVersion) {
-                Write-Host "[OK] Azure Developer CLI installed successfully: $azdVersion" -ForegroundColor Green
-            } else {
-                Write-Host "[WARN] azd installation completed but azd command not found. Restart terminal." -ForegroundColor Yellow
-            }
-        } catch {
-            Write-Host "[WARN] Failed to install azd via winget. Install manually: winget install Microsoft.Azd" -ForegroundColor Yellow
-        }
+    $extensionId = "TeamsDevApp.vscode-ai-foundry"
+    $installed = code --list-extensions 2>$null | Select-String -Pattern $extensionId
+    
+    if ($installed) {
+        Write-Host "[OK] Microsoft Foundry extension already installed." -ForegroundColor Green
     } else {
-        Write-Host "[WARN] winget not available. Install azd manually from: https://aka.ms/azure-dev/install" -ForegroundColor Yellow
+        code --install-extension $extensionId --force 2>&1 | Out-Null
+        Write-Host "[OK] Microsoft Foundry extension installed successfully." -ForegroundColor Green
+        Write-Host "     Reload VS Code to activate the extension." -ForegroundColor White
     }
 } else {
-    Write-Host "[OK] Found $azdVersion" -ForegroundColor Green
-    
-    # Check if azd supports AI agent commands
-    $azdHelp = azd ai --help 2>&1 | Out-String
-    if ($azdHelp -match "agent") {
-        Write-Host "[OK] azd AI agent support detected." -ForegroundColor Green
-    } else {
-        Write-Host "[WARN] azd AI agent commands not available. Update: winget upgrade Microsoft.Azd" -ForegroundColor Yellow
-    }
+    Write-Host "[WARN] VS Code not found on PATH. Install manually from: https://code.visualstudio.com/" -ForegroundColor Yellow
+    Write-Host "       Microsoft Foundry extension: https://marketplace.visualstudio.com/items?itemName=TeamsDevApp.vscode-ai-foundry" -ForegroundColor Yellow
 }
 
 # ── 3. Create .venv ──────────────────────────────────────────────────────────
@@ -119,7 +105,7 @@ $envTemplate = Join-Path $ProjectRoot ".env.template"
 if (-not (Test-Path $envFile)) {
     if (Test-Path $envTemplate) {
         Copy-Item $envTemplate $envFile
-        Write-Host "[OK] Created .env from .env.template — edit it with your settings." -ForegroundColor Green
+        Write-Host "[OK] Created .env from .env.template - edit it with your settings." -ForegroundColor Green
     } else {
         Write-Host "[WARN] No .env.template found. Create a .env file manually." -ForegroundColor Yellow
     }

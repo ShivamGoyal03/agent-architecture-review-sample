@@ -11,7 +11,7 @@ function Summary({ data }) {
       <div className="summary-grid">
         <div className="summary-stat">
           <div className={`value ${riskClass}`}>
-            {data.risk_level?.toUpperCase() || "—"}
+            {data.risk_level?.toUpperCase() || "-"}
           </div>
           <div className="label">Risk Level</div>
         </div>
@@ -29,7 +29,7 @@ function Summary({ data }) {
         </div>
         <div className="summary-stat">
           <div className="value" style={{ fontSize: 16 }}>
-            {data.format_detected || "—"}
+            {data.format_detected || "-"}
           </div>
           <div className="label">Input Format</div>
         </div>
