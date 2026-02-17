@@ -6,7 +6,7 @@ import ComponentMap from "./components/ComponentMap";
 import Recommendations from "./components/Recommendations";
 import DiagramViewer from "./components/DiagramViewer";
 
-const SAMPLE_YAML = `# Sample Architecture — paste your own or upload a file
+const SAMPLE_YAML = `# Sample Architecture - paste your own or upload a file
 components:
   - name: API Gateway
     type: gateway

@@ -1,5 +1,5 @@
 """
-Unit tests for tools.py — parser, risk detection, diagram generation,
+Unit tests for tools.py - parser, risk detection, diagram generation,
 component mapping, and report building.
 """
 
@@ -277,7 +277,7 @@ class TestPlaintextParser:
 # ═══════════════════════════════════════════════════════════════════════════
 
 class TestParseArchitecture:
-    """Tests for parse_architecture() — unified parsing with auto-detection."""
+    """Tests for parse_architecture() - unified parsing with auto-detection."""
 
     def test_auto_detect_yaml(self):
         result = parse_architecture(SAMPLE_YAML)

@@ -24,7 +24,7 @@
     App Service Plan SKU (default: B1).
 
 .EXAMPLE
-    .\scripts\windows\deploy.ps1 -target webapp -ResourceGroup arch-review-rg -AppName arch-review-web
+    .\scripts\windows\deploy-webapp.ps1 -ResourceGroup arch-review-rg -AppName arch-review-web
 #>
 
 [CmdletBinding()]
@@ -51,7 +51,7 @@ $ProjectRoot = Split-Path -Parent (Split-Path -Parent $scriptDir)
 Push-Location $ProjectRoot
 
 Write-Host ""
-Write-Host "=== Architecture Review Agent — Azure Web App Deployment ===" -ForegroundColor Cyan
+Write-Host "=== Architecture Review Agent - Azure Web App Deployment ===" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "  Resource Group : $ResourceGroup"
 Write-Host "  App Name       : $AppName"
@@ -72,7 +72,7 @@ Write-Host "  Azure CLI $azVersion" -ForegroundColor Green
 # Check login
 $account = az account show --query name -o tsv 2>$null
 if (-not $account) {
-    Write-Host "[..] Not logged in — running az login..." -ForegroundColor Yellow
+    Write-Host "[..] Not logged in - running az login..." -ForegroundColor Yellow
     az login
 }
 Write-Host "  Subscription: $(az account show --query name -o tsv)" -ForegroundColor Green

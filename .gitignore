@@ -9,6 +9,7 @@ build/
 # Virtual environments
 .venv*/
 venv/
+.github
 
 # Environment files (secrets)
 .env
@@ -26,7 +27,7 @@ frontend/dist/
 .foundry/
 
 # IDE / OS
-.vscode/
+*vscode*
 .idea/
 *.swp
 .DS_Store

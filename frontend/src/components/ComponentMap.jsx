@@ -40,10 +40,10 @@ function ComponentMap({ data }) {
               <td style={{ textAlign: "center" }}>{c.fan_in}</td>
               <td style={{ textAlign: "center" }}>{c.fan_out}</td>
               <td style={{ fontSize: 13, color: "#868e96" }}>
-                {c.depends_on?.join(", ") || "—"}
+                {c.depends_on?.join(", ") || "-"}
               </td>
               <td style={{ fontSize: 13, color: "#868e96" }}>
-                {c.depended_by?.join(", ") || "—"}
+                {c.depended_by?.join(", ") || "-"}
               </td>
             </tr>
           ))}

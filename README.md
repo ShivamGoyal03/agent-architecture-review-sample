@@ -6,15 +6,15 @@
 
 ## What is the Architecture Review Agent?
 
-The Architecture Review Agent is an open-source AI agent sample that **reviews software architectures and generates interactive diagrams** — automatically. Feed it any architectural description (YAML, Markdown, plain text, code, design docs) and it returns a structured review with risk analysis, actionable recommendations, and an [Excalidraw](https://excalidraw.com/) diagram you can edit and share.
+The Architecture Review Agent is an open-source AI agent sample that **reviews software architectures and generates interactive diagrams** - automatically. Feed it any architectural description (YAML, Markdown, plain text, code, design docs) and it returns a structured review with risk analysis, actionable recommendations, and an [Excalidraw](https://excalidraw.com/) diagram you can edit and share.
 
 ### Why use it?
 
-- **Instant architecture feedback** — get a prioritised risk assessment and improvement plan in seconds, not days.
-- **Works with what you already have** — paste a YAML spec, drag in a README, or describe your system in plain English. The LLM infers structure when the input isn't formal.
-- **Interactive diagrams** — auto-generated Excalidraw diagrams render components, connections, and data flows. Edit them in-browser or export to PNG.
-- **Two deployment options** — run as a full-stack **Web App** (FastAPI + React) on Azure App Service, or as a **Hosted Agent** on Microsoft Foundry with Teams / M365 Copilot integration.
-- **Built for developers** — runs locally with a single script, deploys to Azure with one command, and exposes a REST API for pipeline integration.
+- **Instant architecture feedback** - get a prioritised risk assessment and improvement plan in seconds, not days.
+- **Works with what you already have** - paste a YAML spec, drag in a README, or describe your system in plain English. The LLM infers structure when the input isn't formal.
+- **Interactive diagrams** - auto-generated Excalidraw diagrams render components, connections, and data flows. Edit them in-browser or export to PNG.
+- **Two deployment options** - run as a full-stack **Web App** (FastAPI + React) on Azure App Service, or as a **Hosted Agent** on Microsoft Foundry with Teams / M365 Copilot integration.
+- **Built for developers** - runs locally with a single script, deploys to Azure with one command, and exposes a REST API for pipeline integration.
 
 ### Built with
 
@@ -31,7 +31,7 @@ The Architecture Review Agent is an open-source AI agent sample that **reviews s
 
 | Capability | Description |
 |---|---|
-| **Smart Input Intelligence** | Accepts **any** input — YAML, Markdown, plaintext arrows, READMEs, design docs, code, configs. LLM auto-infers architecture when format isn't structured |
+| **Smart Input Intelligence** | Accepts **any** input - YAML, Markdown, plaintext arrows, READMEs, design docs, code, configs. LLM auto-infers architecture when format isn't structured |
 | **Architecture Parsing** | Rule-based parsers for YAML, Markdown, plaintext; automatic LLM fallback for unstructured content |
 | **Risk Detection** | Template-based detector for structured inputs; **LLM-generated** context-aware risks with 1-liner issues & recommendations when using inference |
 | **Interactive Diagrams** | Renders architecture diagrams via Excalidraw MCP server for interactive viewing |
@@ -39,7 +39,7 @@ The Architecture Review Agent is an open-source AI agent sample that **reviews s
 | **Component Mapping** | Dependency analysis with fan-in/fan-out metrics and orphan detection |
 | **Structured Reports** | Executive summary, prioritised recommendations, and severity-grouped risk assessment |
 | **Web UI** | React frontend with interactive Excalidraw diagrams, drag-and-drop file upload, risk tables, and downloadable outputs |
-| **FastAPI Backend** | REST API exposing the full review pipeline — deployable to Azure App Service |
+| **FastAPI Backend** | REST API exposing the full review pipeline - deployable to Azure App Service |
 | **Hosted Agent** | Deploys as an OpenAI Responses-compatible API via Microsoft Agent Framework |
 
 ---
@@ -48,50 +48,51 @@ The Architecture Review Agent is an open-source AI agent sample that **reviews s
 
 This sample ships with **two production deployment paths**. Both share the same core analysis engine ([tools.py](tools.py)) choose the one that fits your operational model.
 
-### Option A — Web App (Azure App Service)
+### Option A - Web App (Azure App Service)
 
 A traditional full-stack web application: **FastAPI** backend + **React** frontend, packaged in a single Docker image and deployed to **Azure App Service**.
 
-- **You own the API surface** — custom REST endpoints (`/api/review`, `/api/infer`, etc.)
-- **Interactive browser UI** — React + Excalidraw with drag-and-drop file upload, tabbed results, PNG/Excalidraw downloads
-- **Standard App Service model** — bring-your-own infrastructure, scale via App Service Plan (manual or auto-scale rules)
-- **Authentication** — API key or Azure AD, configured by you
+- **You own the API surface** - custom REST endpoints (`/api/review`, `/api/infer`, etc.)
+- **Interactive browser UI** - React + Excalidraw with drag-and-drop file upload, tabbed results, PNG/Excalidraw downloads
+- **Standard App Service model** - bring-your-own infrastructure, scale via App Service Plan (manual or auto-scale rules)
+- **Authentication** - API key or Azure AD, configured by you
 
 **Best for:** Teams that want a **custom UI**, need to embed the API in existing tooling, or prefer full control over infrastructure and scaling.
 
-**Key files:** [api.py](api.py) · [Dockerfile.web](Dockerfile.web) · [frontend/](frontend/) · [scripts/windows/deploy.ps1](scripts/windows/deploy.ps1)
+**Key files:** [api.py](api.py) · [Dockerfile.web](Dockerfile.web) · [frontend/](frontend/) · [scripts/windows/deploy-webapp.ps1](scripts/windows/deploy-webapp.ps1)
 
-### Option B — Hosted Agent (Microsoft Foundry Agent Service)
+### Option B - Hosted Agent (Microsoft Foundry Agent Service)
 
-A **managed agent** deployed to Microsoft Foundry's Hosted Agent infrastructure. The platform handles containerisation, identity, scaling, and API compliance.
+A **managed agent** deployed to Microsoft Foundry's Hosted Agent infrastructure via the **VS Code Foundry extension**. The platform handles containerisation, identity, scaling, and API compliance.
 
-- **OpenAI Responses API** — your agent automatically exposes the OpenAI-compatible `/responses` endpoint
-- **Managed infrastructure** — Microsoft Foundry builds, hosts, and scales the container (0 → 5 replicas, including scale-to-zero)
-- **Managed identity** — no API keys in the container; the platform assigns a system-managed identity with RBAC
-- **Conversation persistence** — the Foundry Agent Service manages conversation state across requests
-- **Channel publishing** — publish your agent to **Microsoft Teams**, **Microsoft 365 Copilot**, a **Web App preview**, or a **stable API endpoint** — no extra code required
-- **Observability** — built-in **OpenTelemetry** tracing with Azure Monitor integration
+- **OpenAI Responses API** - your agent automatically exposes the OpenAI-compatible `/responses` endpoint
+- **Managed infrastructure** - Microsoft Foundry builds, hosts, and scales the container (0 → 5 replicas, including scale-to-zero)
+- **Managed identity** - no API keys in the container; the platform assigns a system-managed identity with RBAC
+- **Conversation persistence** - the Foundry Agent Service manages conversation state across requests
+- **Channel publishing** - publish your agent to **Microsoft Teams**, **Microsoft 365 Copilot**, a **Web App preview**, or a **stable API endpoint** - no extra code required
+- **Observability** - built-in **OpenTelemetry** tracing with Azure Monitor integration
+- **Stable deployment workflow** - the **VS Code Foundry extension** provides step-by-step guidance with automatic ACR integration, managed identity assignment, and built-in validation
 
-**Best for:** Teams that want a **managed, scalable API** with zero infrastructure overhead, or need to publish the agent to **Teams / M365 Copilot** channels.
+**Best for:** Teams that want a **managed, scalable API** with zero infrastructure overhead, or need to publish the agent to **Teams / M365 Copilot** channels. The extension-based deployment flow is more reliable than script-based approaches and provides real-time feedback.
 
-**Key files:** [main.py](main.py) · [agent.yaml](agent.yaml) · [Dockerfile](Dockerfile) · [deployment.md](deployment.md) · [scripts/windows/deploy.ps1](scripts/windows/deploy.ps1)
+**Key files:** [main.py](main.py) · [agent.yaml](agent.yaml) · [Dockerfile](Dockerfile) · [deployment.md](deployment.md)
 
 ### Comparison
 
-| | **Option A — Web App** | **Option B — Hosted Agent** |
+| | **Option A - Web App** | **Option B - Hosted Agent** |
 |---|---|---|
 | **Entry point** | [api.py](api.py) (FastAPI + Uvicorn) | [main.py](main.py) (Agent Framework) |
 | **Container** | [Dockerfile.web](Dockerfile.web) (multi-stage Node + Python) | [Dockerfile](Dockerfile) (Python only) |
 | **API style** | Custom REST (`/api/review`, `/api/infer`) | OpenAI Responses API (`/responses`) |
-| **UI included** | Yes — React + Excalidraw | No (API only; use Foundry Playground or channels) |
+| **UI included** | Yes - React + Excalidraw | No (API only; use Foundry Playground or channels) |
 | **Azure target** | Azure App Service + ACR | Microsoft Foundry Agent Service |
 | **Scaling** | App Service Plan (manual / auto-scale rules) | Platform-managed (0–5 replicas, scale-to-zero) |
 | **Identity** | Configured by you (API key, Azure AD) | System-assigned managed identity (automatic) |
 | **Conversations** | Stateless REST (you manage state) | Platform-managed conversation persistence |
 | **Channel publishing** | N/A (custom UI) | Teams, M365 Copilot, Web preview, stable endpoint |
 | **Observability** | Add your own (App Insights, etc.) | Built-in OpenTelemetry + Azure Monitor |
-| **Deploy command** | `.\scripts\windows\deploy.ps1 -target webapp -ResourceGroup arch-review-rg -AppName arch-review-web` | `azd ai agent deploy` or `.\scripts\windows\deploy.ps1 -target agent` |
-| **Teardown** | `.\scripts\windows\teardown.ps1 -ResourceGroup arch-review-rg` | `.\scripts\windows\teardown.ps1 -ResourceGroup arch-review-rg` |
+| **Deployment** | Scripts: `.\scripts\windows\deploy-webapp.ps1` | VS Code Foundry extension |
+| **Teardown** | `.\scripts\windows\teardown.ps1 -ResourceGroup <rg>` | Via Foundry portal |
 
 > **Tip:** You can run both simultaneously use the Web App for your internal team's browser-based reviews, and the Hosted Agent for API consumers and Teams/Copilot integration.
 
@@ -108,7 +109,7 @@ agent-architecture-review-sample/
 ├── agent.yaml           # Foundry hosted agent deployment manifest
 ├── requirements.txt     # Python dependencies (pinned versions)
 ├── Dockerfile           # Container deployment (hosted agent)
-├── Dockerfile.web       # Container deployment (web app — FastAPI + React)
+├── Dockerfile.web       # Container deployment (web app - FastAPI + React)
 ├── deployment.md        # Step-by-step deployment & RBAC guide
 ├── .env.template        # Environment variable template
 ├── scripts/             # All automation scripts organized by OS
@@ -116,15 +117,11 @@ agent-architecture-review-sample/
 │   ├── windows/            # PowerShell scripts for Windows
 │   │   ├── setup.ps1       # One-click setup (Windows)
 │   │   ├── dev.ps1         # Start dev servers (Windows)
-│   │   ├── deploy.ps1      # Unified deployment dispatcher
-│   │   ├── deploy-agent.ps1   # Deploy hosted agent to Foundry
 │   │   ├── deploy-webapp.ps1  # Deploy web app to App Service
 │   │   └── teardown.ps1    # Delete all Azure resources
 │   └── linux-mac/          # Bash scripts for Linux/macOS
 │       ├── setup.sh        # One-click setup (Unix)
 │       ├── dev.sh          # Start dev servers (Unix)
-│       ├── deploy.sh       # Unified deployment dispatcher
-│       ├── deploy-agent.sh    # Deploy hosted agent to Foundry
 │       ├── deploy-webapp.sh   # Deploy web app to App Service
 │       └── teardown.sh     # Delete all Azure resources
 ├── frontend/            # React UI (Vite + Excalidraw)
@@ -160,7 +157,7 @@ Setup scripts are provided that create a `.venv` virtual environment, install al
 
 ```powershell
 # Clone the repository
-git clone <repo-url>
+git clone https://github.com/Azure-Samples/agent-architecture-review-sample
 cd agent-architecture-review-sample
 
 # Run the setup script (creates .venv, installs deps, copies .env.template → .env)
@@ -171,7 +168,7 @@ cd agent-architecture-review-sample
 
 ```bash
 # Clone the repository
-git clone <repo-url>
+git clone https://github.com/Azure-Samples/agent-architecture-review-sample
 cd agent-architecture-review-sample
 
 # Run the setup script
@@ -261,7 +258,7 @@ python run_local.py --text "Load Balancer -> Web Server -> App Server -> Postgre
 # With Excalidraw MCP server rendering (interactive diagram)
 python run_local.py examples/ecommerce.yaml --render
 
-# Feed ANY file — auto-falls back to LLM inference if not structured
+# Feed ANY file - auto-falls back to LLM inference if not structured
 python run_local.py README.md
 python run_local.py design_doc.txt
 
@@ -272,11 +269,11 @@ python run_local.py --text "We have a React frontend, Kong gateway, three micros
 ```
 
 **Outputs** (saved to `output/`):
-- `architecture.excalidraw` — Excalidraw file for local viewing
-- `architecture.png` — High-resolution PNG diagram
-- `review_bundle.json` — Full structured review report (JSON)
+- `architecture.excalidraw` - Excalidraw file for local viewing
+- `architecture.png` - High-resolution PNG diagram
+- `review_bundle.json` - Full structured review report (JSON)
 
-### Option A — Web App (React + FastAPI)
+### Option A - Web App (React + FastAPI)
 
 The Architecture Review Agent includes a full-stack web interface with an interactive Excalidraw diagram viewer, risk tables, and component maps. See [Two Deployment Options](#two-deployment-options) for a comparison with Option B.
 
@@ -292,10 +289,10 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 #### Manual Start
 
 ```bash
-# Terminal 1 — Backend
+# Terminal 1 - Backend
 python -m uvicorn api:app --reload --port 8000
 
-# Terminal 2 — Frontend
+# Terminal 2 - Frontend
 cd frontend
 npm install        # first time only
 npx vite --port 5173
@@ -308,7 +305,7 @@ docker build -f Dockerfile.web -t arch-review-web .
 docker run -p 8000:8000 --env-file .env arch-review-web
 ```
 
-Open [http://localhost:8000](http://localhost:8000) — the container serves both the API and the React UI.
+Open [http://localhost:8000](http://localhost:8000) - the container serves both the API and the React UI.
 
 #### Deploy to Azure App Service
 
@@ -316,12 +313,12 @@ Automated deployment scripts handle resource provisioning, container build, and 
 
 **PowerShell:**
 ```powershell
-.\scripts\windows\deploy.ps1 -target webapp -ResourceGroup arch-review-rg -AppName arch-review-web
+.\scripts\windows\deploy-webapp.ps1 -ResourceGroup arch-review-rg -AppName arch-review-web
 ```
 
 **Bash:**
 ```bash
-bash scripts/linux-mac/deploy.sh --target webapp --resource-group arch-review-rg --app-name arch-review-web
+bash scripts/linux-mac/deploy-webapp.sh --resource-group arch-review-rg --app-name arch-review-web
 ```
 
 The scripts create an Azure Container Registry, build the image via ACR Tasks,
@@ -329,6 +326,13 @@ provision an App Service Plan + Web App with managed identity, and configure
 app settings from your `.env` file.
 
 To tear down all resources:
+
+**PowerShell:**
+```powershell
+.\scripts\windows\teardown.ps1 -ResourceGroup arch-review-rg
+```
+
+**Bash:**
 ```bash
 bash scripts/linux-mac/teardown.sh --resource-group arch-review-rg
 ```
@@ -344,7 +348,7 @@ bash scripts/linux-mac/teardown.sh --resource-group arch-review-rg
 | `GET`  | `/api/download/excalidraw/{run_id}` | Download Excalidraw JSON |
 | `GET`  | `/api/health` | Health check |
 
-### Option B — Hosted Agent (Microsoft Foundry Agent Service)
+### Option B - Hosted Agent (Microsoft Foundry Agent Service)
 
 The hosted agent starts an **OpenAI Responses-compatible** API server. Locally it runs on port 8088; when deployed to Microsoft Foundry, the platform manages the endpoint, scaling, identity, and conversation state. See [Two Deployment Options](#two-deployment-options) for a comparison with Option A.
 
@@ -370,32 +374,16 @@ docker build -t arch-review .
 docker run -p 8088:8088 --env-file .env arch-review
 ```
 
-#### Deploy to Microsoft Foundry (Hosted Agent)
+#### Deploy to Microsoft Foundry (VS Code Extension)
 
-The [`agent.yaml`](agent.yaml) manifest defines the hosted agent configuration (see the snippet under [Option B — Hosted Agent](#option-b--hosted-agent-azure-ai-foundry-agent-service) above). Deploy using the Azure Developer CLI (`azd`) or the automated scripts.
+The **VS Code Foundry extension** provides the most stable and straightforward deployment workflow:
 
-**Automated Deployment Script:**
+1. Install the [Microsoft Foundry for VS Code extension](https://marketplace.visualstudio.com/items?itemName=TeamsDevApp.vscode-ai-foundry)
+2. Open the Command Palette (`Ctrl+Shift+P`) and run **`Microsoft Foundry: Deploy Hosted Agent`**
+3. Select your Foundry workspace and follow the prompts
+4. The extension handles ACR build, container deployment, and managed identity assignment automatically
 
-**PowerShell:**
-```powershell
-.\scripts\windows\deploy.ps1 -target agent -ResourceGroup arch-review-rg -ProjectName arch-review
-```
-
-**Bash:**
-```bash
-bash scripts/linux-mac/deploy.sh --target agent --resource-group arch-review-rg --project-name arch-review
-```
-
-**Manual Deployment (azd):**
-
-```bash
-# Install/update Azure Developer CLI
-winget install Microsoft.Azd
-
-# Login and deploy
-azd auth login
-azd ai agent deploy
-```
+See [deployment.md](deployment.md) for the complete step-by-step guide with screenshots and RBAC configuration.
 
 #### What Microsoft Foundry Provides
 
@@ -405,7 +393,7 @@ Once deployed as a hosted agent, the platform manages:
 |---|---|
 | **Container hosting** | Built via ACR Tasks, deployed to Foundry-managed compute |
 | **Auto-scaling** | 0 → 5 replicas with scale-to-zero support |
-| **Managed identity** | System-assigned identity with RBAC — no API keys in the container |
+| **Managed identity** | System-assigned identity with RBAC - no API keys in the container |
 | **Conversation persistence** | The Foundry Agent Service stores and manages conversation state |
 | **Channel publishing** | Publish to **Microsoft Teams**, **M365 Copilot**, **Web App preview**, or a **stable API endpoint** |
 | **Observability** | Built-in OpenTelemetry tracing integrated with Azure Monitor |
@@ -467,8 +455,8 @@ AZURE_AI_MODEL_DEPLOYMENT_NAME=gpt-4.1
 
 The Architecture Review Agent supports two authentication methods:
 
-1. **API Key** (simplest) — Set `AZURE_OPENAI_API_KEY` in `.env`. Used automatically when present.
-2. **DefaultAzureCredential** (fallback) — Supports Azure CLI (`az login`), Managed Identity, and service principal env vars (`AZURE_CLIENT_ID` / `AZURE_TENANT_ID` / `AZURE_CLIENT_SECRET`).
+1. **API Key** (simplest) - Set `AZURE_OPENAI_API_KEY` in `.env`. Used automatically when present.
+2. **DefaultAzureCredential** (fallback) - Supports Azure CLI (`az login`), Managed Identity, and service principal env vars (`AZURE_CLIENT_ID` / `AZURE_TENANT_ID` / `AZURE_CLIENT_SECRET`).
 
 For local development with API key:
 
@@ -488,7 +476,7 @@ az account set --subscription <your-subscription-id>
 
 ## Input Formats
 
-The Architecture Review Agent accepts **any** input — structured or unstructured.  Component names, types, and architectures are fully dynamic.
+The Architecture Review Agent accepts **any** input - structured or unstructured.  Component names, types, and architectures are fully dynamic.
 
 ### How it works
 
@@ -565,7 +553,7 @@ Chained arrows (`A -> B -> C`) are auto-expanded into individual connections.
 
 ### Unstructured: Anything Else
 
-Feed it a README, design document, code file, Terraform config, meeting notes — the LLM analyses it:
+Feed it a README, design document, code file, Terraform config, meeting notes - the LLM analyses it:
 
 ```text
 Our platform uses React for the frontend, served through CloudFront CDN.
@@ -577,9 +565,9 @@ for monitoring.
 ```
 
 The model will infer:
-- **10 components** — React Frontend, CloudFront CDN, Kong API Gateway, User Service, Order Service, Inventory Service, 3× PostgreSQL DBs, Kafka, Redis, Datadog
-- **Component types** — frontend, cache, gateway, service, database, queue, monitoring
-- **~12 connections** — Frontend→CDN→Gateway→Services→DBs, Order→Kafka→Inventory, etc.
+- **10 components** - React Frontend, CloudFront CDN, Kong API Gateway, User Service, Order Service, Inventory Service, 3× PostgreSQL DBs, Kafka, Redis, Datadog
+- **Component types** - frontend, cache, gateway, service, database, queue, monitoring
+- **~12 connections** - Frontend→CDN→Gateway→Services→DBs, Order→Kafka→Inventory, etc.
 
 Then proceeds with full risk analysis, diagram generation, and report.
 
@@ -589,8 +577,8 @@ Then proceeds with full risk analysis, diagram generation, and report.
 
 | Tool | Description |
 |---|---|
-| `review_architecture` | **One-call pipeline** — smart-parse (with automatic LLM fallback) → risk analysis → diagram + Excalidraw MCP render + PNG export → component map → structured report with executive summary and prioritised recommendations |
-| `infer_architecture` | **LLM inference only** — extract components, types, and connections from any unstructured text (README, code, design doc, prose) without running the full review pipeline |
+| `review_architecture` | **One-call pipeline** - smart-parse (with automatic LLM fallback) → risk analysis → diagram + Excalidraw MCP render + PNG export → component map → structured report with executive summary and prioritised recommendations |
+| `infer_architecture` | **LLM inference only** - extract components, types, and connections from any unstructured text (README, code, design doc, prose) without running the full review pipeline |
 
 ---
 
@@ -605,13 +593,13 @@ Fast pattern-matching across four categories:
 | Category | What it detects |
 |---|---|
 | **SPOF** | Components with 1 replica and ≥2 dependants, or infrastructure types (gateway, database, cache, queue) with no redundancy |
-| **Scalability** | Shared resources (cache, database, queue) used by ≥3 services — contention risk |
+| **Scalability** | Shared resources (cache, database, queue) used by ≥3 services - contention risk |
 | **Security** | Frontend-to-database direct access, missing API gateway, external dependencies without circuit-breakers |
-| **Anti-patterns** | Shared database pattern — multiple services writing to the same datastore |
+| **Anti-patterns** | Shared database pattern - multiple services writing to the same datastore |
 
 ### LLM-generated (inferred inputs)
 
-When the LLM infers the architecture (auto-fallback or `--infer`), it also produces **context-aware risks** with concise 1-liner issues and actionable recommendations — covering SPOFs, redundancy gaps, security concerns, observability, compliance (e.g. PCI DSS), and architecture-specific bottlenecks.
+When the LLM infers the architecture (auto-fallback or `--infer`), it also produces **context-aware risks** with concise 1-liner issues and actionable recommendations - covering SPOFs, redundancy gaps, security concerns, observability, compliance (e.g. PCI DSS), and architecture-specific bottlenecks.
 
 Risks are severity-bucketed: `critical` → `high` → `medium` → `low`.
 
@@ -664,12 +652,12 @@ flowchart TB
 
 ## Tech Stack
 
-- **Microsoft Agent Framework** (`azure-ai-agentserver-agentframework`) — Hosted agent runtime
-- **Excalidraw MCP Server** — Interactive diagram rendering via MCP protocol
-- **Azure OpenAI** — LLM backend (GPT-4.1 recommended) via `AzureOpenAIChatClient` (API key or `DefaultAzureCredential`)
-- **Pillow** — PNG diagram export
-- **PyYAML** — YAML parsing
-- **Rich** — CLI output formatting
+- **Microsoft Agent Framework** (`azure-ai-agentserver-agentframework`) - Hosted agent runtime
+- **Excalidraw MCP Server** - Interactive diagram rendering via MCP protocol
+- **Azure OpenAI** - LLM backend (GPT-4.1 recommended) via `AzureOpenAIChatClient` (API key or `DefaultAzureCredential`)
+- **Pillow** - PNG diagram export
+- **PyYAML** - YAML parsing
+- **Rich** - CLI output formatting
 
 ---
 

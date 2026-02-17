@@ -1,4 +1,4 @@
-# Windows Scripts — Command Reference
+# Windows Scripts - Command Reference
 
 This folder contains all PowerShell scripts for Windows development and deployment.
 
@@ -10,8 +10,7 @@ This folder contains all PowerShell scripts for Windows development and deployme
 |------|---------|
 | **First-time setup** | `.\scripts\windows\setup.ps1` |
 | **Start dev server** | `.\scripts\windows\dev.ps1` |
-| **Deploy hosted agent** | `.\scripts\windows\deploy.ps1 -target agent` |
-| **Deploy web app** | `.\scripts\windows\deploy.ps1 -target webapp -ResourceGroup arch-review-rg -AppName arch-review-web` |
+| **Deploy web app** | `.\scripts\windows\deploy-webapp.ps1 -ResourceGroup arch-review-rg -AppName arch-review-web` |
 | **Clean up resources** | `.\scripts\windows\teardown.ps1 -ResourceGroup arch-review-rg` |
 
 ---
@@ -41,7 +40,7 @@ Next: Run .\scripts\windows\dev.ps1
 ```
 
 ### If Already Set Up
-Safe to run multiple times—will update dependencies if needed.
+Safe to run multiple times-will update dependencies if needed.
 
 ---
 
@@ -81,90 +80,7 @@ Ctrl+C  # Stops both FastAPI and Vite
 
 ---
 
-## 🌩️ Deploy Script — Hosted Agent
-
-### What It Does
-- Validates Azure login
-- Builds Docker container
-- Uploads to Azure Container Registry (ACR)
-- Deploys as Hosted Agent to Microsoft Foundry
-- Configures managed identity and RBAC
-
-### Prerequisites
-- `az login` completed
-- Azure subscription selected
-- Access to target resource group
-
-### Deploy to Hosted Agent (Default)
-```powershell
-.\scripts\windows\deploy.ps1 -target agent -ResourceGroup arch-review-rg
-```
-
-### Deploy with Custom Options
-```powershell
-# Specify project name
-.\scripts\windows\deploy.ps1 -target agent `
-    -ResourceGroup arch-review-rg `
-    -ProjectName my-arch-review
-
-# Specify location
-.\scripts\windows\deploy.ps1 -target agent `
-    -ResourceGroup arch-review-rg `
-    -Location westus2
-
-# Specify model
-.\scripts\windows\deploy.ps1 -target agent `
-    -ResourceGroup arch-review-rg `
-    -ModelName gpt-4.1
-```
-
-### Deploy Parameters
-```powershell
-# -target agent
-  Required when deploying hosted agent
-  
-# -ResourceGroup string
-  Azure resource group name
-  Example: "arch-review-rg"
-  
-# -ProjectName string
-  Microsoft Foundry project name (default: "arch-review")
-  Example: "my-project"
-  
-# -Location string
-  Azure region (default: "eastus2")
-  Example: "westus2", "eastus", "northeurope"
-  
-# -ModelName string
-  Model to deploy (default: "gpt-4.1")
-  Example: "gpt-4.1"
-```
-
-### Example Output
-```
-🚀 Deploying Hosted Agent...
-✅ Logged in to Azure
-✅ Building Docker image...
-✅ Pushing to ACR...
-✅ Creating AI Services account...
-✅ Creating Microsoft Foundry project...
-✅ Deploying model...
-✅ Deploying agent...
-✅ Configuring RBAC...
-
-✅ Deployment successful!
-
-Agent endpoint: https://arch-review-agent.azurewebsites.net/
-```
-
-### After Deployment
-- Agent available in Microsoft Foundry portal
-- Can publish to Teams, M365 Copilot, or stable endpoint
-- Use `/responses` endpoint for API calls
-
----
-
-## 🌐 Deploy Script — Web App
+##  Deploy Script — Web App
 
 ### What It Does
 - Validates prerequisites
@@ -175,18 +91,18 @@ Agent endpoint: https://arch-review-agent.azurewebsites.net/
 
 ### Deploy Web App
 ```powershell
-.\scripts\windows\deploy.ps1 -target webapp -ResourceGroup arch-review-rg -AppName arch-review-web
+.\scripts\windows\deploy-webapp.ps1 -ResourceGroup arch-review-rg -AppName arch-review-web
 ```
 
 ### Deploy Web App with Custom Options
 ```powershell
 # Specify app name
-.\scripts\windows\deploy.ps1 -target webapp `
+.\scripts\windows\deploy-webapp.ps1 `
     -ResourceGroup arch-review-rg `
     -AppName my-reviewer
 
 # Specify location
-.\scripts\windows\deploy.ps1 -target webapp `
+.\scripts\windows\deploy-webapp.ps1 `
     -ResourceGroup arch-review-rg `
     -AppName arch-review-web `
     -Location westus2
@@ -217,7 +133,7 @@ Web app: https://arch-review-app.azurewebsites.net/
 ## 🗑️ Teardown Script
 
 ### What It Does
-- Removes deployed hosted agent or web app
+- Removes deployed web app resources
 - Deletes container registry
 - Deletes resource groups
 - Cleans up all Azure resources
@@ -239,7 +155,6 @@ Script will prompt before deleting:
 ### Example Output
 ```
 🗑️ Cleaning up Azure resources...
-✅ Deleting hosted agent...
 ✅ Deleting container registry...
 ✅ Deleting resource groups...
 
@@ -265,7 +180,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
 
 ### Setup: "venv already exists"
-Safe to re-run—will update dependencies:
+Safe to re-run-will update dependencies:
 ```powershell
 .\scripts\windows\setup.ps1
 ```
@@ -328,13 +243,13 @@ az login
 # 2. Create resource group (or use existing)
 az group create --name arch-review-rg --location eastus2
 
-# 3. Deploy hosted agent
-.\scripts\windows\deploy.ps1 `
-    -target agent `
-    -ResourceGroup arch-review-rg
+# 3. Deploy web app
+.\scripts\windows\deploy-webapp.ps1 `
+    -ResourceGroup arch-review-rg `
+    -AppName arch-review-web
 
 # 4. Wait for deployment to complete
-# 5. Agent appears in Microsoft Foundry portal
+# 5. Web app available at azurewebsites.net URL
 ```
 
 ### Clean Up
@@ -347,18 +262,18 @@ az group create --name arch-review-rg --location eastus2
 
 ## 🔗 Related Documentation
 
-- [../README.md](../README.md) — Project overview
-- [../../README.md](../../README.md) — Full repository guide
-- [../../deployment.md](../../deployment.md) — Detailed deployment steps
-- [../../run_local.py](../../run_local.py) — CLI testing alternative
+- [../README.md](../README.md) - Scripts overview & quick reference
+- [../../README.md](../../README.md) - Full repository guide
+- [../../deployment.md](../../deployment.md) - Hosted agent deployment (VS Code Foundry extension)
+- [../../run_local.py](../../run_local.py) - CLI testing alternative
 
 ---
 
 ## ✅ Quick Checklist
 
-- [ ] Run `.\scripts\windows\setup.ps1` (first time only)
+- [ ] Run `.\scripts\windows\setup.ps1` (installs dependencies + Foundry extension)
 - [ ] Run `.\scripts\windows\dev.ps1` to test locally
-- [ ] Open http://localhost:5173 to see UI
-- [ ] Run Azure deployment with `.\scripts\windows\deploy.ps1 -target agent`
-- [ ] Verify agent in Microsoft Foundry portal
-- [ ] Use `.\scripts\windows\teardown.ps1 -ResourceGroup arch-review-rg` when done
+- [ ] Open http://localhost:5173 to see web UI
+- [ ] **For Web App:** Run `.\scripts\windows\deploy-webapp.ps1 -ResourceGroup arch-review-rg -AppName arch-review-web`
+- [ ] **For Hosted Agent:** Use VS Code Command Palette (`Ctrl+Shift+P`) → `Microsoft Foundry: Deploy Hosted Agent`
+- [ ] Use `.\scripts\windows\teardown.ps1 -ResourceGroup arch-review-rg` to clean up

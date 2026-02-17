@@ -12,7 +12,7 @@ function RiskTable({ risks }) {
   if (allRisks.length === 0) {
     return (
       <div style={{ padding: 24, textAlign: "center", color: "#868e96" }}>
-        No risks detected — architecture looks healthy!
+        No risks detected - architecture looks healthy!
       </div>
     );
   }

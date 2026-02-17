@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Architecture Review Agent — Start both FastAPI backend and React frontend for local development.
+    Architecture Review Agent - Start both FastAPI backend and React frontend for local development.
 
 .DESCRIPTION
     Runs the FastAPI backend on port 8000 and the Vite React dev server on port 5173.
