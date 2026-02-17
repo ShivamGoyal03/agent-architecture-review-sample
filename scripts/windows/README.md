@@ -80,7 +80,90 @@ Ctrl+C  # Stops both FastAPI and Vite
 
 ---
 
-##  Deploy Script - Web App
+## 🌩️ Deploy Script — Hosted Agent
+
+### What It Does
+- Validates Azure login
+- Builds Docker container
+- Uploads to Azure Container Registry (ACR)
+- Deploys as Hosted Agent to Microsoft Foundry
+- Configures managed identity and RBAC
+
+### Prerequisites
+- `az login` completed
+- Azure subscription selected
+- Access to target resource group
+
+### Deploy to Hosted Agent (Default)
+```powershell
+.\scripts\windows\deploy.ps1 -target agent -ResourceGroup arch-review-rg
+```
+
+### Deploy with Custom Options
+```powershell
+# Specify project name
+.\scripts\windows\deploy.ps1 -target agent `
+    -ResourceGroup arch-review-rg `
+    -ProjectName my-arch-review
+
+# Specify location
+.\scripts\windows\deploy.ps1 -target agent `
+    -ResourceGroup arch-review-rg `
+    -Location westus2
+
+# Specify model
+.\scripts\windows\deploy.ps1 -target agent `
+    -ResourceGroup arch-review-rg `
+    -ModelName gpt-4.1
+```
+
+### Deploy Parameters
+```powershell
+# -target agent
+  Required when deploying hosted agent
+  
+# -ResourceGroup string
+  Azure resource group name
+  Example: "arch-review-rg"
+  
+# -ProjectName string
+  AI Foundry project name (default: "arch-review")
+  Example: "my-project"
+  
+# -Location string
+  Azure region (default: "eastus2")
+  Example: "westus2", "eastus", "northeurope"
+  
+# -ModelName string
+  Model to deploy (default: "gpt-4.1")
+  Example: "gpt-4.1"
+```
+
+### Example Output
+```
+🚀 Deploying Hosted Agent...
+✅ Logged in to Azure
+✅ Building Docker image...
+✅ Pushing to ACR...
+✅ Creating AI Services account...
+✅ Creating Microsoft Foundry project...
+✅ Deploying model...
+✅ Deploying agent...
+✅ Configuring RBAC...
+
+✅ Deployment successful!
+
+Agent endpoint: https://arch-review-agent.azurewebsites.net/
+```
+
+### After Deployment
+- Agent available in Microsoft Foundry portal
+- Can publish to Teams, M365 Copilot, or stable endpoint
+- Use `/responses` endpoint for API calls
+
+---
+
+## 🌐 Deploy Script — Web App
 
 ### What It Does
 - Validates prerequisites

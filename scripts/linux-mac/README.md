@@ -97,7 +97,93 @@ tail -f dev.log
 
 ---
 
-##  Deploy Script - Web App
+## 🌩️ Deploy Script — Hosted Agent
+
+### What It Does
+- Validates Azure login
+- Builds Docker container
+- Uploads to Azure Container Registry (ACR)
+- Deploys as Hosted Agent to Microsoft Foundry
+- Configures managed identity and RBAC
+
+### Prerequisites
+- `az login` completed
+- Azure subscription selected
+- Access to target resource group
+
+### Deploy to Hosted Agent (Default)
+```bash
+bash scripts/linux-mac/deploy.sh --target agent --resource-group arch-review-rg
+```
+
+### Deploy with Custom Options
+```bash
+# Specify project name
+bash scripts/linux-mac/deploy.sh \
+    --target agent \
+    --resource-group arch-review-rg \
+    --project-name my-arch-review
+
+# Specify location
+bash scripts/linux-mac/deploy.sh \
+    --target agent \
+    --resource-group arch-review-rg \
+    --location westus2
+
+# Specify model
+bash scripts/linux-mac/deploy.sh \
+    --target agent \
+    --resource-group arch-review-rg \
+    --model-name gpt-4.1
+```
+
+### Deploy Parameters
+```bash
+# --target agent
+  Required when deploying hosted agent
+  
+# --resource-group STRING
+  Azure resource group name
+  Example: "arch-review-rg"
+  
+# --project-name STRING
+  AI Foundry project name (default: "arch-review")
+  Example: "my-project"
+  
+# --location STRING
+  Azure region (default: "eastus2")
+  Example: "westus2", "eastus", "northeurope"
+  
+# --model-name STRING
+  Model to deploy (default: "gpt-4.1")
+  Example: "gpt-4.1"
+```
+
+### Example Output
+```
+🚀 Deploying Hosted Agent...
+✅ Logged in to Azure
+✅ Building Docker image...
+✅ Pushing to ACR...
+✅ Creating AI Services account...
+✅ Creating AI Foundry project...
+✅ Deploying model...
+✅ Deploying agent...
+✅ Configuring RBAC...
+
+✅ Deployment successful!
+
+Agent endpoint: https://arch-review-agent.azurewebsites.net/
+```
+
+### After Deployment
+- Agent available in Microsoft Foundry portal
+- Can publish to Teams, M365 Copilot, or stable endpoint
+- Use `/responses` endpoint for API calls
+
+---
+
+## 🌐 Deploy Script — Web App
 
 ### What It Does
 - Validates prerequisites
