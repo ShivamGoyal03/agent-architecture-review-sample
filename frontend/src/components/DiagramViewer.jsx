@@ -1,9 +1,15 @@
 import React, { useEffect, useState, useRef } from "react";
-import { pngDownloadUrl, excalidrawDownloadUrl } from "../api";
+import {
+  pngDownloadUrl,
+  excalidrawDownloadUrl,
+  fetchPngBlobUrl,
+  downloadFile,
+} from "../api";
 
 function DiagramViewer({ excalidrawFile, runId }) {
   const [Excalidraw, setExcalidraw] = useState(null);
   const [loadError, setLoadError] = useState(false);
+  const [pngBlobUrl, setPngBlobUrl] = useState(null);
   const containerRef = useRef(null);
 
   // Dynamically import @excalidraw/excalidraw
@@ -22,6 +28,22 @@ function DiagramViewer({ excalidrawFile, runId }) {
       cancelled = true;
     };
   }, []);
+
+  // Fetch PNG as blob URL for reliable preview (works regardless of
+  // Content-Disposition headers or proxy configuration)
+  useEffect(() => {
+    if (!runId) return;
+    let cancelled = false;
+    fetchPngBlobUrl(runId)
+      .then((url) => {
+        if (!cancelled) setPngBlobUrl(url);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+      if (pngBlobUrl) URL.revokeObjectURL(pngBlobUrl);
+    };
+  }, [runId]);
 
   if (!excalidrawFile) {
     return (
@@ -42,33 +64,37 @@ function DiagramViewer({ excalidrawFile, runId }) {
     scrollToContent: true,
   };
 
+  const pngPreview = pngBlobUrl ? (
+    <img
+      src={pngBlobUrl}
+      alt="Architecture Diagram"
+      style={{
+        width: "100%",
+        height: "100%",
+        objectFit: "contain",
+        padding: 16,
+      }}
+    />
+  ) : (
+    <div className="loading">
+      <div className="spinner" />
+      Loading diagram preview...
+    </div>
+  );
+
+  const handleDownloadPng = () => {
+    downloadFile(pngDownloadUrl(runId), "architecture.png");
+  };
+
+  const handleDownloadExcalidraw = () => {
+    downloadFile(excalidrawDownloadUrl(runId), "architecture.excalidraw");
+  };
+
   return (
     <div>
       <div className="diagram-container" ref={containerRef}>
         {loadError ? (
-          // Fallback: show PNG image if Excalidraw component fails to load
-          runId ? (
-            <img
-              src={pngDownloadUrl(runId)}
-              alt="Architecture Diagram"
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "contain",
-                padding: 16,
-              }}
-            />
-          ) : (
-            <div
-              style={{
-                padding: 24,
-                textAlign: "center",
-                color: "#868e96",
-              }}
-            >
-              Could not load interactive diagram viewer.
-            </div>
-          )
+          pngPreview
         ) : Excalidraw ? (
           <Excalidraw
             initialData={initialData}
@@ -78,29 +104,21 @@ function DiagramViewer({ excalidrawFile, runId }) {
             theme="light"
           />
         ) : (
-          <div className="loading">
-            <div className="spinner" />
-            Loading diagram viewer...
-          </div>
+          pngPreview
         )}
       </div>
 
       {runId && (
         <div className="diagram-actions">
-          <a
-            className="btn btn-secondary"
-            href={pngDownloadUrl(runId)}
-            download="architecture.png"
-          >
+          <button className="btn btn-secondary" onClick={handleDownloadPng}>
             Download PNG
-          </a>
-          <a
+          </button>
+          <button
             className="btn btn-secondary"
-            href={excalidrawDownloadUrl(runId)}
-            download="architecture.excalidraw"
+            onClick={handleDownloadExcalidraw}
           >
             Download Excalidraw
-          </a>
+          </button>
         </div>
       )}
     </div>
