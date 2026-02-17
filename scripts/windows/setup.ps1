@@ -62,9 +62,15 @@ if (Get-Command code -ErrorAction SilentlyContinue) {
     if ($installed) {
         Write-Host "[OK] Microsoft Foundry extension already installed." -ForegroundColor Green
     } else {
-        code --install-extension $extensionId --force 2>&1 | Out-Null
-        Write-Host "[OK] Microsoft Foundry extension installed successfully." -ForegroundColor Green
-        Write-Host "     Reload VS Code to activate the extension." -ForegroundColor White
+        $installOutput = code --install-extension $extensionId --force 2>&1
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "[OK] Microsoft Foundry extension installed successfully." -ForegroundColor Green
+            Write-Host "     Reload VS Code to activate the extension." -ForegroundColor White
+        } else {
+            Write-Host "[WARN] Failed to install Microsoft Foundry extension." -ForegroundColor Yellow
+            Write-Host "$installOutput" -ForegroundColor Yellow
+            Write-Host "       Install manually: https://marketplace.visualstudio.com/items?itemName=TeamsDevApp.vscode-ai-foundry" -ForegroundColor Yellow
+        }
     }
 } else {
     Write-Host "[WARN] VS Code not found on PATH. Install manually from: https://code.visualstudio.com/" -ForegroundColor Yellow

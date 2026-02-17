@@ -158,13 +158,13 @@ resources:
     name: chat
 ```
 
-Then deploy with a single command:
+Then deploy using the **VS Code Foundry extension** - open Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`) and run:
 
-```bash
-azd ai agent deploy
+```
+Microsoft Foundry: Deploy Hosted Agent
 ```
 
-Azure handles everything:
+The extension handles everything:
 - **Container build & hosting** - via Azure Container Registry Tasks, deployed to Foundry-managed infrastructure
 - **Managed identity** - system-assigned identity with RBAC, no API keys in your container
 - **Auto-scaling** - 0 → 5 replicas with scale-to-zero support (you don't pay when idle)
@@ -180,12 +180,7 @@ Azure handles everything:
 - You prefer **scale-to-zero** economics (don't pay for idle compute)
 - You want built-in **observability** without configuring monitoring infrastructure
 
-Deploy using the VS Code Foundry extension - open Command Palette and run:
-```
-Microsoft Foundry: Deploy Hosted Agent
-```
-
-The extension guides you through workspace selection, builds your container in Azure, and configures managed identity automatically.
+The extension guides you through workspace selection, builds your container in Azure via ACR Tasks, and configures managed identity automatically. See [deployment.md](deployment.md) for the complete deployment guide.
 
 ### Side-by-Side Comparison
 
@@ -403,7 +398,7 @@ Not every team wants managed infrastructure, and not every team wants to manage 
 
 ### 5. Hosted Agents Remove Operational Burden
 
-For the hosted agent path, we didn't have to think about container orchestration, auto-scaling, API gateway configuration, or conversation state management. The `agent.yaml` manifest plus `azd ai agent deploy` handled it. Scale-to-zero means dev/test agents cost nothing when idle. And channel publishing (Teams, M365 Copilot) came for free. For a small team, this is transformative.
+For the hosted agent path, we didn't have to think about container orchestration, auto-scaling, API gateway configuration, or conversation state management. The `agent.yaml` manifest plus the **VS Code Foundry extension** deployment handled it. Scale-to-zero means dev/test agents cost nothing when idle. And channel publishing (Teams, M365 Copilot) came for free. For a small team, this is transformative.
 
 ### 6. The Web App Gives You Control
 
@@ -443,7 +438,7 @@ The Microsoft Agent Framework makes building production AI agents surprisingly s
 
 - [Microsoft Agent Framework](https://github.com/microsoft/agents) - the framework powering the Architecture Review Agent
 - [Microsoft Foundry Hosted Agents](https://learn.microsoft.com/en-us/azure/ai-foundry/agents/concepts/hosted-agents) - managed agent deployment
-- [Azure Developer CLI (azd)](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/) - infrastructure-as-code deployment
+- [Microsoft Foundry VS Code Extension](https://marketplace.visualstudio.com/items?itemName=TeamsDevApp.vscode-ai-foundry) - deploy hosted agents from VS Code
 - [Excalidraw MCP Server](https://github.com/excalidraw/excalidraw-mcp) - interactive diagram rendering
 - [Architecture Review Agent Deployment Guide](deployment.md) - detailed RBAC and deployment walkthrough
 - [Microsoft Foundry](https://ai.azure.com) - Microsoft Foundry is a unified platform designed for building, deploying, and managing AI applications and agents, integrating seamlessly with Azure services and tools. 

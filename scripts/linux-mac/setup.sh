@@ -50,9 +50,13 @@ if command -v code &>/dev/null; then
     if code --list-extensions 2>/dev/null | grep -q "$extensionId"; then
         echo "[OK] Microsoft Foundry extension already installed."
     else
-        code --install-extension "$extensionId" --force &>/dev/null
-        echo "[OK] Microsoft Foundry extension installed successfully."
-        echo "     Reload VS Code to activate the extension."
+        if code --install-extension "$extensionId" --force 2>&1; then
+            echo "[OK] Microsoft Foundry extension installed successfully."
+            echo "     Reload VS Code to activate the extension."
+        else
+            echo "[WARN] Failed to install Microsoft Foundry extension."
+            echo "       Install manually: https://marketplace.visualstudio.com/items?itemName=TeamsDevApp.vscode-ai-foundry"
+        fi
     fi
 else
     echo "[WARN] VS Code not found on PATH. Install manually from: https://code.visualstudio.com/"
