@@ -1,11 +1,25 @@
 """Record a demo video of the Architecture Review Agent using the microservices banking scenario."""
 
 import asyncio
+import shutil
 from pathlib import Path
 from playwright.async_api import async_playwright
 
 SCENARIO_FILE = Path(__file__).resolve().parent.parent / "scenarios" / "microservices_banking.yaml"
 VIDEO_DIR = Path(__file__).resolve().parent.parent / "screenshots"
+OUTPUT_VIDEO = VIDEO_DIR / "microservices_banking_demo.mp4"
+
+
+async def smooth_scroll(page, target: int, steps: int = 8, delay_ms: int = 80):
+    """Smoothly scroll to a target Y position."""
+    current = await page.evaluate("window.scrollY")
+    step = (target - current) / steps
+    for _ in range(steps):
+        current += step
+        await page.evaluate(f"window.scrollTo(0, {int(current)})")
+        await page.wait_for_timeout(delay_ms)
+    await page.evaluate(f"window.scrollTo(0, {target})")
+
 
 async def main():
     scenario_content = SCENARIO_FILE.read_text(encoding="utf-8")
@@ -24,7 +38,7 @@ async def main():
         print("1. Opening app...")
         await page.goto("http://localhost:5173")
         await page.wait_for_load_state("networkidle")
-        await page.wait_for_timeout(2000)
+        await page.wait_for_timeout(1500)
 
         # 2. Paste the microservices banking scenario
         print("2. Pasting microservices banking scenario...")
@@ -33,69 +47,84 @@ async def main():
         await textarea.fill(scenario_content)
         await page.wait_for_timeout(1500)
 
-        # 3. Click Review Architecture
+        # 3. Scroll down to show the textarea content and Review button
+        await smooth_scroll(page, 200)
+        await page.wait_for_timeout(1000)
+
+        # 4. Click Review Architecture
         print("3. Clicking Review Architecture...")
         await page.get_by_role("button", name="Review Architecture").click()
+        await page.wait_for_timeout(500)
 
-        # 4. Wait for results
-        print("4. Waiting for results...")
-        await page.wait_for_selector("text=Executive Summary", timeout=30000)
-        await page.wait_for_timeout(2000)
+        # 5. Wait for results (banking scenario takes longer due to more components)
+        print("4. Waiting for analysis results...")
+        await page.wait_for_selector("text=Executive Summary", timeout=45000)
+        await page.wait_for_timeout(1000)
 
-        # 5. Scroll to Executive Summary
+        # 6. Scroll smoothly to Executive Summary
         print("5. Showing Executive Summary...")
-        await page.evaluate("window.scrollTo({ top: 450, behavior: 'smooth' })")
+        await smooth_scroll(page, 420)
         await page.wait_for_timeout(2500)
 
-        # 6. Diagram tab
-        print("6. Diagram tab...")
+        # 7. Diagram tab — wait for PNG blob to load then scroll into view
+        print("6. Diagram tab — PNG preview...")
         await page.get_by_role("button", name="Diagram").click()
-        await page.wait_for_timeout(1500)
-        await page.evaluate("window.scrollTo({ top: 650, behavior: 'smooth' })")
+        await page.wait_for_timeout(500)
+        await smooth_scroll(page, 620)
+        # Wait up to 6 s for the PNG blob URL to appear in the img src
+        await page.wait_for_selector(".diagram-container img[src^='blob:']", timeout=6000)
         await page.wait_for_timeout(2500)
 
-        # 7. Risks tab
+        # 8. Risks tab
         print("7. Risks tab...")
-        await page.get_by_role("button", name="Risks").click()
-        await page.wait_for_timeout(1500)
-        await page.evaluate("window.scrollTo({ top: 550, behavior: 'smooth' })")
-        await page.wait_for_timeout(2500)
-
-        # Scroll further to show more risks
-        await page.evaluate("window.scrollTo({ top: 900, behavior: 'smooth' })")
+        # Risks button text includes the count e.g. "Risks (7)"
+        await page.locator(".tabs button", has_text="Risks").click()
+        await page.wait_for_timeout(500)
+        await smooth_scroll(page, 560)
+        await page.wait_for_timeout(2000)
+        # Scroll further to reveal more risk rows
+        await smooth_scroll(page, 900)
         await page.wait_for_timeout(2000)
 
-        # 8. Components tab
+        # 9. Components tab
         print("8. Components tab...")
-        await page.get_by_role("button", name="Components").click()
-        await page.wait_for_timeout(1500)
-        await page.evaluate("window.scrollTo({ top: 550, behavior: 'smooth' })")
-        await page.wait_for_timeout(2500)
-
-        # Scroll further to show more components
-        await page.evaluate("window.scrollTo({ top: 900, behavior: 'smooth' })")
+        await page.locator(".tabs button", has_text="Components").click()
+        await page.wait_for_timeout(500)
+        await smooth_scroll(page, 560)
+        await page.wait_for_timeout(2000)
+        # Scroll to reveal more component rows
+        await smooth_scroll(page, 950)
         await page.wait_for_timeout(2000)
 
-        # 9. Recommendations tab
+        # 10. Recommendations tab
         print("9. Recommendations tab...")
-        await page.get_by_role("button", name="Recommendations").click()
-        await page.wait_for_timeout(1500)
-        await page.evaluate("window.scrollTo({ top: 550, behavior: 'smooth' })")
-        await page.wait_for_timeout(2500)
-
-        # 10. Scroll back to top
-        print("10. Scrolling back to top...")
-        await page.evaluate("window.scrollTo({ top: 0, behavior: 'smooth' })")
+        await page.locator(".tabs button", has_text="Recommendations").click()
+        await page.wait_for_timeout(500)
+        await smooth_scroll(page, 560)
+        await page.wait_for_timeout(2000)
+        # Scroll to reveal more recommendations
+        await smooth_scroll(page, 950)
         await page.wait_for_timeout(2000)
 
-        # Close to finalize the video
+        # 11. Return to Diagram tab and scroll back to top
+        print("10. Back to diagram, scroll to top...")
+        await page.locator(".tabs button", has_text="Diagram").click()
+        await page.wait_for_timeout(500)
+        await smooth_scroll(page, 0)
+        await page.wait_for_timeout(2000)
+
+        # Capture the temp video path before closing
         video_path = await page.video.path()
-        print(f"Video recording path: {video_path}")
+        print(f"Temp video path: {video_path}")
+
         await context.close()
         await browser.close()
 
-        print(f"Done! Video saved at: {video_path}")
-        return video_path
+    # Rename / overwrite the final output file
+    shutil.move(str(video_path), str(OUTPUT_VIDEO))
+    print(f"Done! Demo video saved to: {OUTPUT_VIDEO}")
+    return str(OUTPUT_VIDEO)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

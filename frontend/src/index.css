@@ -268,10 +268,21 @@ tbody tr:hover {
 
 /* Diagram */
 .diagram-container {
+  position: relative;
   height: 500px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   overflow: hidden;
+}
+
+/* Constrain Excalidraw canvas to the diagram container bounds */
+.diagram-container .excalidraw,
+.diagram-container .excalidraw-container {
+  position: absolute !important;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
 }
 
 .diagram-actions {

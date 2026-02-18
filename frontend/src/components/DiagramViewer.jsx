@@ -7,30 +7,13 @@ import {
 } from "../api";
 
 function DiagramViewer({ excalidrawFile, runId }) {
-  const [Excalidraw, setExcalidraw] = useState(null);
-  const [loadError, setLoadError] = useState(false);
   const [pngBlobUrl, setPngBlobUrl] = useState(null);
+  const [showInteractive, setShowInteractive] = useState(false);
+  const [Excalidraw, setExcalidraw] = useState(null);
+  const [excalidrawAPI, setExcalidrawAPI] = useState(null);
   const containerRef = useRef(null);
 
-  // Dynamically import @excalidraw/excalidraw
-  useEffect(() => {
-    let cancelled = false;
-    import("@excalidraw/excalidraw")
-      .then((mod) => {
-        if (!cancelled) {
-          setExcalidraw(() => mod.Excalidraw);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setLoadError(true);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  // Fetch PNG as blob URL for reliable preview (works regardless of
-  // Content-Disposition headers or proxy configuration)
+  // Fetch PNG as blob URL for reliable preview
   useEffect(() => {
     if (!runId) return;
     let cancelled = false;
@@ -44,6 +27,26 @@ function DiagramViewer({ excalidrawFile, runId }) {
       if (pngBlobUrl) URL.revokeObjectURL(pngBlobUrl);
     };
   }, [runId]);
+
+  // Lazily load Excalidraw only when the interactive view is requested
+  useEffect(() => {
+    if (!showInteractive || Excalidraw) return;
+    import("@excalidraw/excalidraw")
+      .then((mod) => setExcalidraw(() => mod.Excalidraw))
+      .catch(() => setShowInteractive(false));
+  }, [showInteractive]);
+
+  // Fit all elements into view once the Excalidraw API is ready
+  useEffect(() => {
+    if (!excalidrawAPI) return;
+    const timer = setTimeout(() => {
+      excalidrawAPI.scrollToContent(undefined, {
+        fitToContent: true,
+        viewportZoomFactor: 0.85,
+      });
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [excalidrawAPI]);
 
   if (!excalidrawFile) {
     return (
@@ -64,47 +67,60 @@ function DiagramViewer({ excalidrawFile, runId }) {
     scrollToContent: true,
   };
 
-  const pngPreview = pngBlobUrl ? (
-    <img
-      src={pngBlobUrl}
-      alt="Architecture Diagram"
-      style={{
-        width: "100%",
-        height: "100%",
-        objectFit: "contain",
-        padding: 16,
-      }}
-    />
-  ) : (
-    <div className="loading">
-      <div className="spinner" />
-      Loading diagram preview...
-    </div>
-  );
-
   const handleDownloadPng = () => {
-    downloadFile(pngDownloadUrl(runId), "architecture.png");
+    downloadFile(pngDownloadUrl(runId), "architecture.png").catch((err) => {
+      console.error("PNG download failed:", err);
+      alert("PNG download failed: " + err.message);
+    });
   };
 
   const handleDownloadExcalidraw = () => {
-    downloadFile(excalidrawDownloadUrl(runId), "architecture.excalidraw");
+    downloadFile(excalidrawDownloadUrl(runId), "architecture.excalidraw").catch(
+      (err) => {
+        console.error("Excalidraw download failed:", err);
+        alert("Excalidraw download failed: " + err.message);
+      }
+    );
   };
+
+  const interactiveView =
+    showInteractive && Excalidraw ? (
+      <Excalidraw
+        excalidrawAPI={(api) => setExcalidrawAPI(api)}
+        initialData={initialData}
+        viewModeEnabled={false}
+        zenModeEnabled={false}
+        gridModeEnabled={false}
+        theme="light"
+      />
+    ) : showInteractive ? (
+      <div className="loading">
+        <div className="spinner" />
+        Loading interactive editor...
+      </div>
+    ) : null;
 
   return (
     <div>
       <div className="diagram-container" ref={containerRef}>
-        {loadError ? (
-          pngPreview
-        ) : Excalidraw ? (
-          <Excalidraw
-            initialData={initialData}
-            viewModeEnabled={false}
-            zenModeEnabled={false}
-            gridModeEnabled={false}
-            theme="light"
+        {showInteractive ? (
+          interactiveView
+        ) : pngBlobUrl ? (
+          <img
+            src={pngBlobUrl}
+            alt="Architecture Diagram"
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "contain",
+              padding: 16,
+            }}
           />
         ) : (
-          pngPreview
+          <div className="loading">
+            <div className="spinner" />
+            Loading diagram preview...
+          </div>
         )}
       </div>
 
@@ -118,6 +134,12 @@ function DiagramViewer({ excalidrawFile, runId }) {
             onClick={handleDownloadExcalidraw}
           >
             Download Excalidraw
+          </button>
+          <button
+            className="btn btn-secondary"
+            onClick={() => setShowInteractive((v) => !v)}
+          >
+            {showInteractive ? "Back to Preview" : "Open Interactive Editor"}
           </button>
         </div>
       )}
