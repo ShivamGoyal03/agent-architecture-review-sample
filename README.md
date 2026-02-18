@@ -1,13 +1,39 @@
 # Architecture Review Agent Sample
 
-**AI-powered Architecture Reviewer & Diagram Generator Agent**
-
----
-
 ## What is the Architecture Review Agent?
 
 The Architecture Review Agent is an open-source AI agent sample that **reviews software architectures and generates interactive diagrams** - automatically. Feed it any architectural description (YAML, Markdown, plain text, code, design docs) and it returns a structured review with risk analysis, actionable recommendations, and an [Excalidraw](https://excalidraw.com/) diagram you can edit and share.
 
+## Architecture
+
+![Architecture Overview](screenshots/architecture_overview.png)
+
+*Clients (Teams/M365 Copilot, CLI, Web Browser) → Foundry Agent Service or Web App → Core Engine (Smart Parser, Risk Detector, Report Builder, Diagram Renderer, LLM Inference) → Azure OpenAI / Excalidraw MCP / ACR / Azure App Service*
+
+### Internal Data Flow
+
+```mermaid
+flowchart TB
+    subgraph Agent["Architecture Review Agent<br/>"]
+        review_architecture
+        infer_architecture
+    end
+
+    subgraph Tools["tools.py"]
+        Parser["Parser<br/>YAML / MD / Plaintext"]
+        LLMInference["LLM Inference<br/>AzureOpenAIChatClient"]
+        RiskDetector["Risk Detector<br/>Template + LLM"]
+        DiagramRenderer["Diagram Renderer<br/>Excalidraw + PNG"]
+        ComponentMapper["Component Mapper"]
+        ReportBuilder["Report Builder"]
+        MCPClient["MCP Client<br/>(Excalidraw Server)"]
+    end
+
+    review_architecture --> Tools
+    infer_architecture --> Tools
+    Tools --> LocalOutputs[".excalidraw / .png / .json"]
+    MCPClient --> ExcalidrawMCP["Excalidraw MCP<br/>(Interactive View)"]
+```
 ### Why use it?
 
 - **Instant architecture feedback** - get a prioritised risk assessment and improvement plan in seconds, not days.
@@ -24,6 +50,16 @@ The Architecture Review Agent is an open-source AI agent sample that **reviews s
 | [Excalidraw MCP Server](https://github.com/excalidraw/excalidraw-mcp) | Interactive diagram rendering via Model Context Protocol |
 | [Azure OpenAI (GPT-4.1)](https://learn.microsoft.com/azure/ai-services/openai/) | LLM backend for architecture inference & risk analysis |
 | [FastAPI](https://fastapi.tiangolo.com/) + [React](https://react.dev/) | Full-stack web app deployment path |
+
+---
+
+## Demo
+
+> **Microservices Banking Architecture** — full end-to-end review: file upload → risk detection → interactive Excalidraw diagram → recommendations.
+
+<video src="screenshots/microservices_banking_demo.mp4" controls width="100%" style="border-radius:8px;"></video>
+
+> If the video does not render inline, [download and watch it here](screenshots/microservices_banking_demo.mp4).
 
 ---
 
@@ -131,9 +167,12 @@ agent-architecture-review-sample/
 │   │   └── components/  # Summary, RiskTable, ComponentMap, DiagramViewer, Recommendations
 │   ├── vite.config.js   # Vite config with API proxy
 │   └── package.json
-├── examples/
-│   ├── ecommerce.yaml   # Sample: 12-component e-commerce microservices
-│   └── event_driven.md  # Sample: 8-component event-driven IoT pipeline
+├── scenarios/
+│   ├── ecommerce.yaml          # Sample: 12-component e-commerce microservices
+│   ├── event_driven.md         # Sample: 8-component event-driven IoT pipeline
+│   ├── microservices_banking.yaml  # Sample: microservices banking architecture
+│   ├── healthcare_platform.yaml    # Sample: healthcare platform
+│   └── startup_mvp.yaml            # Sample: startup MVP
 └── output/              # Generated outputs (auto-created)
     ├── architecture.excalidraw
     ├── architecture.png
@@ -247,16 +286,16 @@ The local runner executes the full pipeline parse, risk analysis, diagram genera
 
 ```bash
 # Analyse a YAML architecture file (rule-based parser)
-python run_local.py examples/ecommerce.yaml
+python run_local.py scenarios/ecommerce.yaml
 
 # Analyse a Markdown architecture file
-python run_local.py examples/event_driven.md
+python run_local.py scenarios/event_driven.md
 
 # Inline plaintext (chained arrows supported)
 python run_local.py --text "Load Balancer -> Web Server -> App Server -> PostgreSQL DB"
 
 # With Excalidraw MCP server rendering (interactive diagram)
-python run_local.py examples/ecommerce.yaml --render
+python run_local.py scenarios/ecommerce.yaml --render
 
 # Feed ANY file - auto-falls back to LLM inference if not structured
 python run_local.py README.md
@@ -621,32 +660,7 @@ When types aren't explicitly set, the Architecture Review Agent infers them from
 | monitoring | monitor, logging, prometheus, grafana, datadog | Grey |
 | service | *(default for anything else)* | Green |
 
----
 
-## Architecture
-
-```mermaid
-flowchart TB
-    subgraph Agent["Architecture Review Agent<br/>"]
-        review_architecture
-        infer_architecture
-    end
-
-    subgraph Tools["tools.py"]
-        Parser["Parser<br/>YAML / MD / Plaintext"]
-        LLMInference["LLM Inference<br/>AzureOpenAIChatClient"]
-        RiskDetector["Risk Detector<br/>Template + LLM"]
-        DiagramRenderer["Diagram Renderer<br/>Excalidraw + PNG"]
-        ComponentMapper["Component Mapper"]
-        ReportBuilder["Report Builder"]
-        MCPClient["MCP Client<br/>(Excalidraw Server)"]
-    end
-
-    review_architecture --> Tools
-    infer_architecture --> Tools
-    Tools --> LocalOutputs[".excalidraw / .png / .json"]
-    MCPClient --> ExcalidrawMCP["Excalidraw MCP<br/>(Interactive View)"]
-```
 
 ---
 
@@ -658,6 +672,20 @@ flowchart TB
 - **Pillow** - PNG diagram export
 - **PyYAML** - YAML parsing
 - **Rich** - CLI output formatting
+
+---
+
+## Maintainer
+
+<table>
+<tr>
+    <td align="center"><a href="https://github.com/ShivamGoyal03">
+        <img src="https://github.com/ShivamGoyal03.png" width="100px;" alt="Shivam Goyal"/><br />
+        <sub><b>Shivam Goyal</b></sub>
+    </a><br />
+    </td>
+</tr>
+</table>
 
 ---
 
