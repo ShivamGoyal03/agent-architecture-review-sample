@@ -1,5 +1,7 @@
 # Architecture Review Agent Sample
 
+[![TechCommunity Article](https://img.shields.io/badge/TechCommunity-Article-0078D4?logo=microsoft&logoColor=white)](https://techcommunity.microsoft.com/blog/educatordeveloperblog/stop-drawing-architecture-diagrams-manually-meet-the-open-source-ai-architecture/4496271)
+
 ## What is the Architecture Review Agent?
 
 The Architecture Review Agent is an open-source AI agent sample that **reviews software architectures and generates interactive diagrams** - automatically. Feed it any architectural description (YAML, Markdown, plain text, code, design docs) and it returns a structured review with risk analysis, actionable recommendations, and an [Excalidraw](https://excalidraw.com/) diagram you can edit and share.
