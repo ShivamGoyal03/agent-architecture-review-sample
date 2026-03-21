@@ -7,6 +7,8 @@ Ready for deployment to Foundry Hosted Agent service.
 import asyncio
 import json
 import os
+import uuid
+from pathlib import Path
 from typing import Annotated
 
 from dotenv import load_dotenv
@@ -71,9 +73,15 @@ async def review_architecture(
         risks = analyze_risks(parsed["components"], parsed["connections"])
     comp_map = build_component_map(parsed["components"], parsed["connections"])
 
+    run_id = uuid.uuid4().hex[:8]
+    output_dir = Path(__file__).parent / "output"
+    output_dir.mkdir(exist_ok=True)
+    excalidraw_path = str(output_dir / f"architecture_{run_id}.excalidraw")
+    png_path_out = str(output_dir / f"architecture_{run_id}.png")
+
     file_elems = generate_excalidraw_elements(parsed["components"], parsed["connections"])
-    saved = save_excalidraw_file(file_elems["elements_json"])
-    png_path = export_png(parsed["components"], parsed["connections"])
+    saved = save_excalidraw_file(file_elems["elements_json"], excalidraw_path)
+    png_path = export_png(parsed["components"], parsed["connections"], png_path_out)
 
     # Read the saved .excalidraw file to include in the response
     with open(saved, "r", encoding="utf-8") as f:
@@ -130,6 +138,31 @@ insights, visual diagrams, and actionable recommendations.
 - Use `review_architecture` for the full pipeline in one call.
 - Use `infer_architecture` when you only need to extract components from
   unstructured text without the full review.
+
+**TOOL USAGE REQUIREMENTS:**
+- For any request to review, analyse, assess, evaluate, map, or diagram an
+    architecture, you MUST call `review_architecture` before responding.
+- For any request to extract components/connections only, you MUST call
+    `infer_architecture` before responding.
+- The first action for architecture requests must be the appropriate tool
+    call; do not draft an explanatory answer before invoking the tool.
+- Pass the user's original architecture content into the tool exactly as
+    provided whenever possible. Do not paraphrase, summarise, rewrite, or
+    replace it with your own analysis before calling the tool.
+- For long messages that include architecture details, copy the full user
+    message verbatim into the `content` argument of the tool call.
+- Do not prepend or append extra framing text inside tool arguments
+    (for example: "I analyzed...", "Architecture summary:", or rewritten lists).
+- If the user input contains Markdown sections (for example `## Components`
+    / `## Connections`) or arrow notation (`A -> B`), preserve that exact text
+    in the tool argument.
+- Do not answer architecture-analysis requests from general knowledge when the
+    user has already provided content to inspect.
+- Do not ask follow-up questions such as whether the user wants a diagram if
+    the request already includes architecture content. Generate the review and
+    diagram immediately.
+- After calling a tool, summarise its results faithfully and mention the
+    generated diagram artifacts when available.
 
 **RULES:**
 - Always render the diagram so the user gets a visual.

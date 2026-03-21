@@ -18,7 +18,8 @@ This guide is the complete `azd` path for this repository:
 By the end, you should be able to:
 
 - start the local hosted-agent runtime with `azd ai agent run`
-- invoke it with `azd ai agent invoke --local "Hello!"`
+- invoke the **Architecture Review Agent** with a real architecture description and receive a structured risk report + Excalidraw diagram
+- pass a YAML/Markdown scenario file inline or describe an architecture in plain text
 - verify environment wiring via `azd env get-values`
 
 ## 1) Install prerequisites (Windows)
@@ -183,16 +184,38 @@ What this does in this repo:
 
 ### 4.2 Invoke from a second terminal
 
-Open terminal #2:
+Open terminal #2.  The agent understands **any input format** — YAML, Markdown, plain prose, or arrows notation.
+
+#### Option A — Pass a scenario file inline (PowerShell)
+
+> **Note:** `azd ai agent invoke --local` treats the argument as a single string — newlines terminate the argument. Collapse multi-line files to a single space-joined string:
 
 ```powershell
-azd ai agent invoke --local "Hello!"
+$yaml = (Get-Content scenarios/ecommerce.yaml) -join " "
+azd ai agent invoke --local "Review this architecture: $yaml"
 ```
 
-Expected result:
+#### Option B — Inline plain-text description
 
-- successful assistant response
+```powershell
+azd ai agent invoke --local "Review my architecture: Load Balancer -> 3 API servers -> PostgreSQL primary with 1 read replica -> Redis cache. Auth handled by the API servers directly."
+```
+
+#### Option C — Markdown scenario file
+
+```powershell
+$md = (Get-Content scenarios/event_driven.md) -join " "
+azd ai agent invoke --local "Analyse this event-driven design and highlight SPOF and scalability risks: $md"
+```
+
+Expected result for any of the above:
+
+- structured JSON report with executive summary, risk table, component map, and diagram info
+- Excalidraw file written to `output/architecture_<run_id>.excalidraw` (unique per invocation)
+- PNG diagram written to `output/architecture_<run_id>.png` (unique per invocation)
 - non-error exit code from invoke command
+
+> **Tip:** For repeated local testing without the hosted-agent runtime, use `python run_local.py scenarios/ecommerce.yaml` instead — it runs the same pipeline but bypasses the agent layer.
 
 ## 5) Troubleshooting checklist
 
@@ -240,11 +263,16 @@ azd up
 
 ## 7) Local mode cheat sheet
 
-- **Engine-local (no hosted runtime):**
+- **Engine-local (no hosted runtime, structured inputs):**
   - `python run_local.py scenarios/ecommerce.yaml`
-- **Hosted-agent-local (AZD runtime):**
-  - `azd ai agent run`
-  - `azd ai agent invoke --local "Hello!"`
+  - `python run_local.py scenarios/event_driven.md`
+  - `python run_local.py --text "LB -> 3 API servers -> PostgreSQL"`
+  - `python run_local.py README.md --infer` (force LLM inference)
+- **Hosted-agent-local (AZD runtime, full agent loop):**
+  - `azd ai agent run`  ← terminal 1
+  - `azd ai agent invoke --local "Review this architecture: $((Get-Content scenarios/ecommerce.yaml) -join ' ')"` ← terminal 2
+  - `azd ai agent invoke --local "LB -> API -> DB with no auth service — what are the security risks?"`
+  - Each run writes unique `output/architecture_<run_id>.excalidraw` and `.png` files
 
 ## 8) References
 

@@ -271,6 +271,16 @@ class TestPlaintextParser:
         assert len(result["components"]) == 3
         assert len(result["connections"]) == 0
 
+    def test_inline_arrow_trailing_sentence_not_in_component_name(self):
+        text = (
+            "Load Balancer -> 3 API servers -> PostgreSQL primary with 1 read replica "
+            "-> Redis cache. Auth handled by the API servers directly."
+        )
+        result = _parse_text(text)
+        names = {c["name"] for c in result["components"]}
+        assert "Redis cache" in names
+        assert not any("Auth handled by" in name for name in names)
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  PARSE_ARCHITECTURE (unified entry point)
@@ -321,6 +331,31 @@ connections:
     def test_sufficient_with_two_components(self):
         result = parse_architecture("A -> B")
         assert result["parsing_sufficient"] is True
+
+    def test_flattened_yaml_payload_from_local_invoke(self):
+        flattened = " ".join(
+            [ln.strip() for ln in SAMPLE_YAML.splitlines() if ln.strip()]
+        )
+        result = parse_architecture(flattened)
+        assert result["detected_format"] == "yaml"
+        assert result["parsing_sufficient"] is True
+        assert len(result["components"]) >= 6
+        assert len(result["connections"]) >= 6
+
+    def test_flattened_markdown_payload_with_prompt_prefix(self):
+        flattened_md = " ".join([ln.strip() for ln in SAMPLE_MARKDOWN.splitlines() if ln.strip()])
+        payload = f"Analyse this event-driven design and highlight SPOF and scalability risks: {flattened_md}"
+
+        result = parse_architecture(payload)
+
+        assert result["detected_format"] == "markdown"
+        assert result["parsing_sufficient"] is True
+        assert len(result["components"]) >= 3
+        assert len(result["connections"]) >= 2
+
+        edge = next(c for c in result["components"] if c["id"] == "edge_gateway")
+        assert edge["type"] == "gateway"
+        assert "**" not in edge["type"]
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -463,6 +498,24 @@ class TestDiagramGeneration:
         for rect in rects:
             assert "label" in rect
             assert "text" in rect["label"]
+
+    def test_long_component_labels_are_wrapped_or_truncated(self):
+        components = [
+            {
+                "id": "redis_cache",
+                "name": "Redis cache. Auth handled by the API servers directly.",
+                "type": "cache",
+                "description": "",
+                "replicas": 1,
+                "technology": "",
+            }
+        ]
+        result = generate_excalidraw_elements(components, [])
+        elements = json.loads(result["elements_json"])
+        labels = [e for e in elements if e.get("id") == "redis_cache_lbl"]
+        assert len(labels) == 1
+        text = labels[0]["text"]
+        assert "\n" in text or text.endswith("...")
 
 
 # ═══════════════════════════════════════════════════════════════════════════

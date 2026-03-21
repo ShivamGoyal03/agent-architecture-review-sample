@@ -65,7 +65,7 @@ app.add_middleware(
 )
 
 # Output directory for generated files
-OUTPUT_DIR = Path("./output")
+OUTPUT_DIR = Path(__file__).parent / "output"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 

@@ -52,6 +52,141 @@ def _extract_replicas(text: str) -> int:
     return int(m.group(1)) if m else 1
 
 
+def _sanitize_component_name(raw: str) -> str:
+    """Clean component names extracted from free-form text.
+
+    Prevents inline explanatory prose from being absorbed into node names,
+    e.g. ``Redis cache. Auth handled by API`` -> ``Redis cache``.
+    """
+    text = raw.strip().lstrip("-* ").strip().strip('"\'`')
+    if not text:
+        return text
+
+    # Split trailing prose sentences while preserving names like "Node.js".
+    text = re.split(r"(?<=[a-z0-9])\.\s+(?=[A-Z])", text, maxsplit=1)[0]
+
+    # Remove trailing punctuation noise.
+    text = re.sub(r"[\s,;:.]+$", "", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _normalize_flat_markdown(content: str) -> str:
+    """Rehydrate markdown that was flattened to a single line.
+
+    This commonly happens when invoking local agent CLI with
+    `(Get-Content file) -join " "`.
+    """
+    if "\n" in content:
+        return content
+    if "## " not in content and "### " not in content:
+        return content
+
+    text = content
+    # Headings
+    text = re.sub(r"\s+(##\s+)", r"\n\1", text)
+    text = re.sub(r"\s+(###\s+)", r"\n\1", text)
+    # Bullets (but avoid arrow syntax like '->')
+    text = re.sub(r"\s+-\s+(?!>)", r"\n- ", text)
+    return text.strip()
+
+
+def _truncate_component_label(text: str, max_chars: int = 34) -> str:
+    """Keep node labels short enough to fit diagram boxes."""
+    t = re.sub(r"\s+", " ", text).strip()
+    return t if len(t) <= max_chars else (t[: max_chars - 3].rstrip() + "...")
+
+
+def _parse_flattened_yaml_payload(content: str) -> dict[str, Any] | None:
+    """Parse YAML-like payloads that were flattened to one line.
+
+    Local invocations often use `(Get-Content file) -join " "`, which can
+    collapse valid YAML into a single line that `yaml.safe_load` cannot parse
+    reliably (especially when the file starts with comment lines).
+    """
+    if "\n" in content:
+        return None
+
+    lower = content.lower()
+    if "components:" not in lower:
+        return None
+
+    # Drop any leading prose/comments before the schema starts.
+    start = lower.find("components:")
+    if start > 0:
+        content = content[start:]
+
+    known_keys = "name|type|technology|replicas|description|from|to|target|source|protocol|label"
+
+    def _extract_field(block: str, key: str) -> str:
+        pat = rf"\b{key}:\s*(.+?)(?=\s+\b(?:{known_keys})\b:|$)"
+        m = re.search(pat, block, re.IGNORECASE)
+        return m.group(1).strip() if m else ""
+
+    sections = re.split(r"\bconnections\s*:", content, maxsplit=1, flags=re.IGNORECASE)
+    comp_text = sections[0]
+    conn_text = sections[1] if len(sections) > 1 else ""
+
+    components: list[dict[str, Any]] = []
+    connections: list[dict[str, Any]] = []
+
+    comp_iter = re.finditer(
+        r"-\s+name:\s*(.+?)(?=\s+-\s+name:|\s+connections:|$)",
+        comp_text,
+        re.IGNORECASE,
+    )
+    for m in comp_iter:
+        block = m.group(1).strip()
+        name = re.split(r"\s+\b(?:type|technology|replicas|description)\b:\s*", block, maxsplit=1, flags=re.IGNORECASE)[0].strip()
+        name = _sanitize_component_name(name)
+        if not name:
+            continue
+
+        cid = re.sub(r"[^a-z0-9]", "_", name.lower()).strip("_")
+        rtxt = _extract_field(block, "replicas")
+        components.append({
+            "id": cid,
+            "name": name,
+            "type": (_extract_field(block, "type") or _infer_type(name)).lower(),
+            "description": _extract_field(block, "description"),
+            "replicas": int(rtxt) if rtxt.isdigit() else 1,
+            "technology": _extract_field(block, "technology"),
+        })
+
+    conn_iter = re.finditer(
+        r"-\s+(?:from|source):\s*(.+?)(?=\s+-\s+(?:from|source):|$)",
+        conn_text,
+        re.IGNORECASE,
+    )
+    for m in conn_iter:
+        block = m.group(1).strip()
+        src = re.split(r"\s+\b(?:to|target|protocol|label|description)\b:\s*", block, maxsplit=1, flags=re.IGNORECASE)[0].strip()
+        tgt = _extract_field(block, "to") or _extract_field(block, "target")
+        if not src or not tgt:
+            continue
+
+        source_id = re.sub(r"[^a-z0-9]", "_", _sanitize_component_name(src).lower()).strip("_")
+        target_id = re.sub(r"[^a-z0-9]", "_", _sanitize_component_name(tgt).lower()).strip("_")
+        if not source_id or not target_id:
+            continue
+
+        connections.append({
+            "source": source_id,
+            "target": target_id,
+            "label": _extract_field(block, "protocol") or _extract_field(block, "label"),
+            "type": "sync",
+        })
+
+    if not components and not connections:
+        return None
+
+    return {
+        "components": components,
+        "connections": connections,
+        "metadata": {},
+        "detected_format": "yaml",
+    }
+
+
 def _detect_format(content: str) -> str:
     stripped = content.strip()
     if stripped.startswith("---") or re.search(r"^\w[\w\s]*:", stripped, re.MULTILINE):
@@ -126,7 +261,34 @@ def _parse_markdown(content: str) -> dict[str, Any]:
             if current_comp:
                 components.append(current_comp)
                 current_comp = None
-            top_section = h2.group(1).strip().lower()
+
+            section_raw = h2.group(1).strip()
+            inline_tail = ""
+            if " - " in section_raw:
+                head, tail = section_raw.split(" - ", 1)
+                top_section = head.strip().lower()
+                inline_tail = tail.strip()
+            else:
+                top_section = section_raw.lower()
+
+            # Flattened markdown can carry connections inline on the section line:
+            # "## Connections - A -> B (...) - B -> C (...)"
+            if inline_tail and any(k in top_section for k in ("connection", "flow", "edge", "link")):
+                for candidate in [c.strip() for c in re.split(r"\s+-\s+", inline_tail) if c.strip()]:
+                    parts = re.split(r"\s*(?:->|→|>>)\s*", candidate)
+                    if len(parts) >= 2:
+                        src = parts[0].strip()
+                        tgt_raw = parts[1].strip()
+                        tgt_m = re.match(r"^(.+?)\s*\(.+\)$", tgt_raw)
+                        tgt = tgt_m.group(1).strip() if tgt_m else tgt_raw
+                        label_m = re.search(r"\((.+?)\)", tgt_raw)
+                        label = label_m.group(1) if label_m else ""
+                        connections.append({
+                            "source": re.sub(r"[^a-z0-9]", "_", src.lower()).strip("_"),
+                            "target": re.sub(r"[^a-z0-9]", "_", tgt.lower()).strip("_"),
+                            "label": label,
+                            "type": "sync",
+                        })
             continue
 
         # Component headers: ### Name
@@ -134,10 +296,29 @@ def _parse_markdown(content: str) -> dict[str, Any]:
         if h3:
             if current_comp:
                 components.append(current_comp)
-            name = h3.group(1).strip()
+            raw = h3.group(1).strip()
+            # Support flattened markdown where metadata is inline, e.g.
+            # "### Edge Gateway - **Type:** gateway - **Replicas:** 10"
+            parts = [p.strip() for p in re.split(r"\s+-\s+", raw) if p.strip()]
+            name = parts[0] if parts else raw
             cid = re.sub(r"[^a-z0-9]", "_", name.lower()).strip("_")
             current_comp = {"id": cid, "name": name, "type": "service",
                             "description": "", "replicas": 1, "technology": ""}
+
+            # Parse optional inline metadata segments after the name.
+            for part in parts[1:]:
+                lower = part.lower()
+                if lower.startswith("**type:**"):
+                    current_comp["type"] = re.sub(r"^\*\*type:\*\*\s*", "", part, flags=re.IGNORECASE).strip().lower()
+                elif lower.startswith("**technology:**"):
+                    current_comp["technology"] = re.sub(r"^\*\*technology:\*\*\s*", "", part, flags=re.IGNORECASE).strip()
+                elif lower.startswith("**replicas:**"):
+                    val = re.sub(r"^\*\*replicas:\*\*\s*", "", part, flags=re.IGNORECASE).strip()
+                    if val.isdigit():
+                        current_comp["replicas"] = int(val)
+                else:
+                    # Treat any remaining inline segment as description text.
+                    current_comp["description"] = (current_comp["description"] + " " + part).strip()
             continue
 
         bullet = re.match(r"^\s*[-*]\s+(.+)", line)
@@ -165,12 +346,10 @@ def _parse_markdown(content: str) -> dict[str, Any]:
 
         # Inside connections section
         if any(k in top_section for k in ("connection", "flow", "edge", "link")):
-            # Parse "A -> B (protocol)" - strip parenthetical from target
             parts = re.split(r"\s*(?:->|→|>>)\s*", text)
             if len(parts) >= 2:
                 src = parts[0].strip()
                 tgt_raw = parts[1].strip()
-                # Strip "(protocol info)" from target
                 tgt_m = re.match(r"^(.+?)\s*\(.+\)$", tgt_raw)
                 tgt = tgt_m.group(1).strip() if tgt_m else tgt_raw
                 label_m = re.search(r"\((.+?)\)", tgt_raw)
@@ -178,7 +357,8 @@ def _parse_markdown(content: str) -> dict[str, Any]:
                 connections.append({
                     "source": re.sub(r"[^a-z0-9]", "_", src.lower()).strip("_"),
                     "target": re.sub(r"[^a-z0-9]", "_", tgt.lower()).strip("_"),
-                    "label": label, "type": "sync",
+                    "label": label,
+                    "type": "sync",
                 })
 
     if current_comp:
@@ -199,7 +379,7 @@ def _parse_text(content: str) -> dict[str, Any]:
         arrow = re.split(r"\s*(?:->|→|>>|=>)\s*", line)
         if len(arrow) >= 2:
             # Support chained arrows: A -> B -> C creates edges A→B, B→C
-            parts = [p.strip().lstrip("- ") for p in arrow]
+            parts = [_sanitize_component_name(p) for p in arrow]
             for idx in range(len(parts) - 1):
                 src, tgt = parts[idx], parts[idx + 1]
                 sid = re.sub(r"[^a-z0-9]", "_", src.lower()).strip("_")
@@ -216,7 +396,7 @@ def _parse_text(content: str) -> dict[str, Any]:
         m = re.match(r"^\s*[-*]\s+(.+)", line)
         text = m.group(1).strip() if m else line
         name_m = re.match(r"^(.+?)(?:\s*\((.+)\))?$", text)
-        name = name_m.group(1).strip() if name_m else text
+        name = _sanitize_component_name(name_m.group(1).strip() if name_m else text)
         desc = name_m.group(2).strip() if name_m and name_m.group(2) else ""
         cid = re.sub(r"[^a-z0-9]", "_", name.lower()).strip("_")
         if cid and cid not in seen:
@@ -236,10 +416,16 @@ def parse_architecture(content: str, format_hint: str = "auto") -> dict[str, Any
     content is returned with a flag so the caller can decide to invoke the
     LLM-based inference.
     """
-    fmt = format_hint if format_hint != "auto" else _detect_format(content)
-    logger.debug("[PARSER] Detected format: %s (hint=%s)", fmt, format_hint)
-    result = {"yaml": _parse_yaml, "markdown": _parse_markdown}.get(fmt, _parse_text)(content)
-    result["detected_format"] = fmt
+    # Special handling for one-line YAML payloads from `Get-Content ... -join " "`.
+    flat_yaml = _parse_flattened_yaml_payload(content)
+    if flat_yaml is not None:
+        result = flat_yaml
+    else:
+        content = _normalize_flat_markdown(content)
+        fmt = format_hint if format_hint != "auto" else _detect_format(content)
+        logger.debug("[PARSER] Detected format: %s (hint=%s)", fmt, format_hint)
+        result = {"yaml": _parse_yaml, "markdown": _parse_markdown}.get(fmt, _parse_text)(content)
+        result["detected_format"] = fmt
 
     # Back-fill components referenced only in connections
     known = {c["id"] for c in result["components"]}
@@ -613,12 +799,13 @@ def _layout(comps: list[dict]) -> dict[str, tuple[int, int]]:
 
 def _rect(cid: str, name: str, ctype: str, x: int, y: int) -> list[dict]:
     col = _COLORS.get(ctype, _DEFAULT_COL)
+    short_name = _truncate_component_label(name)
     return [
         {"type": "rectangle", "id": cid, "x": x, "y": y, "width": _W, "height": _H,
          "strokeColor": col["border"], "backgroundColor": col["bg"],
          "fillStyle": "solid", "roundness": {"type": 3}},
         {"type": "text", "id": f"{cid}_lbl", "x": x + 10, "y": y + 12,
-         "width": _W - 20, "height": 24, "text": name, "fontSize": 18,
+         "width": _W - 20, "height": 24, "text": short_name, "fontSize": 18,
          "textAlign": "center", "strokeColor": "#1e1e1e"},
         {"type": "text", "id": f"{cid}_tag", "x": x + 10, "y": y + 44,
          "width": _W - 20, "height": 16, "text": f"[{ctype.upper()}]",
@@ -864,13 +1051,13 @@ def export_png(
         )
 
         # Component name (centered)
-        name = comp["name"]
+        name = _truncate_component_label(comp["name"], max_chars=34)
         bbox = draw.textbbox((0, 0), name, font=font_lg)
         tw = bbox[2] - bbox[0]
         th = bbox[3] - bbox[1]
         cx = (rx0 + rx1) / 2
         draw.text((cx - tw / 2, ry0 + 10 * scale), name,
-                  fill=_hex_to_rgb("#1e1e1e"), font=font_lg)
+              fill=_hex_to_rgb("#1e1e1e"), font=font_lg)
 
         # Type tag
         tag = f"[{ctype.upper()}]"
