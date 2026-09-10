@@ -100,7 +100,7 @@ Both share the same core engine in `tools.py`.
 
 ### Prerequisites
 - Python 3.11+
-- Node.js (for frontend development)
+- Node.js 20.19+ or 22.12+ (for frontend development — required by Vite 8)
 - (Optional) Azure OpenAI access for LLM inference
 
 ### Quick Setup
