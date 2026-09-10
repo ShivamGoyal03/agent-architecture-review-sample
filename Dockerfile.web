@@ -1,6 +1,6 @@
 # Architecture Review Agent - Web App (FastAPI + React)
 # Build: docker build -f Dockerfile.web -t arch-review-web:v1 .
-FROM node:20-slim AS frontend-build
+FROM node:22-slim AS frontend-build
 
 WORKDIR /build
 COPY frontend/package.json frontend/package-lock.json ./
